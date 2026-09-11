@@ -7,15 +7,24 @@ import { useAuth } from "../_core/hooks/useAuth";
 
 import { startLogin } from "../const";
 
+import { useState } from "react";
+import { trpc } from "../lib/trpc";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { toast } from "sonner";
+
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  
   const [title, setTitle] = useState("");
   const [priceAmount, setPriceAmount] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: products, isLoading } = trpc.admin.listProducts.useQuery();
+  const { data: products, isLoading } = trpc.admin.listProducts.useQuery(undefined, { enabled: isAdmin });
+  
   const createProduct = trpc.admin.createProduct.useMutation({
     onSuccess: () => {
       toast.success("Prodotto creato con successo!");
@@ -39,12 +48,25 @@ export default function AdminDashboard() {
     }
   });
 
-  if (!user) {
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordInput === "admin123") {
+      setIsAdmin(true);
+      toast.success("Accesso effettuato");
+    } else {
+      toast.error("Password errata");
+    }
+  };
+
+  if (!isAdmin) {
     return (
       <div className="p-8 text-center flex flex-col items-center gap-4 mt-20">
         <h2 className="text-xl font-bold">Area Riservata</h2>
-        <p>Esegui l'accesso per visualizzare l'area amministratore.</p>
-        <Button onClick={startLogin}>Accedi come Amministratore</Button>
+        <p>Inserisci la password per gestire i prodotti.</p>
+        <form onSubmit={handleLogin} className="flex gap-2">
+          <Input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} placeholder="Password..." />
+          <Button type="submit">Accedi</Button>
+        </form>
       </div>
     );
   }

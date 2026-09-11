@@ -174,7 +174,7 @@ export default function Checkout() {
                       <div className="text-sm text-gray-600">
                         {d.text} {d.isRequired === 1 && <span className="text-red-500">*</span>}
                         {d.link && (
-                          <a href={d.link} target="_blank" rel="noreferrer" className="text-blue-500 ml-1 hover:underline">
+                          <a href={d.link} target="_blank" rel="noreferrer" download={d.link.startsWith('data:') ? `${d.title}.pdf` : undefined} className="text-blue-500 ml-1 hover:underline">
                             Leggi il documento
                           </a>
                         )}

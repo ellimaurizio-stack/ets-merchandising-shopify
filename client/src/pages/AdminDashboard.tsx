@@ -365,8 +365,20 @@ function PrivacyDisclaimersSection() {
           <Input required value={text} onChange={e => setText(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm font-medium">Link al documento (opzionale, es. /privacy.pdf o URL Google Drive)</label>
-          <Input value={link} onChange={e => setLink(e.target.value)} />
+          <label className="text-sm font-medium">Allega documento PDF (opzionale)</label>
+          <Input type="file" accept="application/pdf" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                setLink(reader.result as string);
+              };
+              reader.readAsDataURL(file);
+            } else {
+              setLink("");
+            }
+          }} />
+          {link && link.startsWith('data:') && <p className="text-xs text-green-600 mt-1">PDF caricato e pronto per il salvataggio.</p>}
         </div>
         <label className="flex items-center gap-2 mt-2">
           <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} />
@@ -384,7 +396,7 @@ function PrivacyDisclaimersSection() {
                 <div>
                   <p className="font-bold">{d.title} {d.isRequired ? <span className="text-red-500">*</span> : ""}</p>
                   <p className="text-sm text-gray-600">{d.text}</p>
-                  {d.link && <a href={d.link} target="_blank" rel="noreferrer" className="text-blue-500 text-xs">Vedi documento allegato</a>}
+                  {d.link && <a href={d.link} target="_blank" rel="noreferrer" download={d.link.startsWith('data:') ? `${d.title}.pdf` : undefined} className="text-blue-500 text-xs mt-1 block">Vedi documento allegato</a>}
                 </div>
                 <Button variant="destructive" size="sm" onClick={() => deleteDisclaimer.mutate({ id: d.id })}>Elimina</Button>
               </div>

@@ -63,7 +63,7 @@ export const privacyDisclaimers = mysqlTable("privacy_disclaimers", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   text: text("text").notNull(),
-  link: varchar("link", { length: 500 }),
+  link: longtext("link"), // Can store a URL or a Base64 encoded file
   isRequired: int("isRequired").default(1).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
 });

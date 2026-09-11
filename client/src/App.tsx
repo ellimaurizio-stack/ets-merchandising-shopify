@@ -14,7 +14,7 @@ function Router() {
   return (
     <StorefrontLayout>
       <Switch>
-        <Route path="/" component={Home} />
+        <Route path="/" component={Shop} />
         <Route path="/shop" component={Shop} />
         <Route path="/prodotto/:handle" component={ProductDetail} />
         <Route path="/404" component={NotFound} />

@@ -4,10 +4,10 @@ import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
-  { label: "Home", href: "/" },
+  // { label: "Home", href: "/" },
   { label: "Lo shop", href: "/shop" },
-  { label: "Il nostro impatto", href: "/#impatto" },
-  { label: "A-Tono ETS", href: "https://ets.a-tono.com" },
+  // { label: "Il nostro impatto", href: "/#impatto" },
+  // { label: "A-Tono ETS", href: "https://ets.a-tono.com" },
 ];
 
 export function SiteHeader() {

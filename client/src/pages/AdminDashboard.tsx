@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -665,18 +665,15 @@ function PaymentSettingsSection() {
     onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
-  // Effect to load initial data
-  import("react").then((React) => {
-    React.useEffect(() => {
-      if (settings) {
-        setProvider(settings.paymentProvider);
-        setStripePublic(settings.stripePublicKey || "");
-        setStripeSecret(settings.stripeSecretKey || "");
-        setPaypalClient(settings.paypalClientId || "");
-        setIban(settings.bankIban || "");
-      }
-    }, [settings]);
-  });
+  useEffect(() => {
+    if (settings) {
+      setProvider(settings.paymentProvider);
+      setStripePublic(settings.stripePublicKey || "");
+      setStripeSecret(settings.stripeSecretKey || "");
+      setPaypalClient(settings.paypalClientId || "");
+      setIban(settings.bankIban || "");
+    }
+  }, [settings]);
 
   if (isLoading) return <p>Caricamento impostazioni...</p>;
 
@@ -763,19 +760,17 @@ function CheckoutFieldsSection() {
     onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
-  import("react").then((React) => {
-    React.useEffect(() => {
-      if (settings?.checkoutFields) {
-        try {
-          setFields(JSON.parse(settings.checkoutFields));
-        } catch (e) {
-          setFields([]);
-        }
-      } else {
+  useEffect(() => {
+    if (settings?.checkoutFields) {
+      try {
+        setFields(JSON.parse(settings.checkoutFields));
+      } catch (e) {
         setFields([]);
       }
-    }, [settings]);
-  });
+    } else {
+      setFields([]);
+    }
+  }, [settings]);
 
   if (isLoading) return <p>Caricamento campi...</p>;
 

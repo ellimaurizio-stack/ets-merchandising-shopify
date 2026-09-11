@@ -165,7 +165,8 @@ export default function Checkout() {
               <div className="bg-slate-50 border p-4 rounded mb-6 text-sm">
                 <p className="font-bold mb-2">Procedura per il Bonifico Bancario:</p>
                 <p>1. Inserisci i tuoi dati qui sotto.</p>
-                <p>2. Clicca su Conferma: <strong>scaricherai automaticamente il riepilogo in PDF</strong> con l'IBAN.</p>
+                <p>2. Clicca su Conferma: <strong>scaricherai automaticamente il riepilogo in PDF</strong> con i dati per il pagamento.</p>
+                <p className="mt-2"><strong>IBAN:</strong> {settings?.bankIban || "Non configurato"}</p>
                 <p>3. Il tuo ordine verrà elaborato alla ricezione del bonifico.</p>
               </div>
             )}
@@ -208,6 +209,7 @@ export default function Checkout() {
                     <label key={d.id} className="flex items-start gap-3 cursor-pointer">
                       <input type="checkbox" required={d.isRequired === 1} className="mt-1" />
                       <div className="text-sm text-gray-600">
+                        <strong>{d.title}: </strong>
                         {d.text} {d.isRequired === 1 && <span className="text-red-500">*</span>}
                         {d.link && (
                           <a href={d.link} target="_blank" rel="noreferrer" download={d.link.startsWith('data:') ? `${d.title}.pdf` : undefined} className="text-blue-500 ml-1 hover:underline">

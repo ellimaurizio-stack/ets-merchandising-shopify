@@ -134,6 +134,37 @@ export const commerceRouter = router({
     if (result.length > 0) return result[0];
     return { paymentProvider: "nessuno" };
   }),
+  listPrivacyDisclaimers: publicProcedure.query(async () => {
+    const { getDb } = await import("../db");
+    const { privacyDisclaimers } = await import("../../drizzle/schema");
+    const { asc } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(privacyDisclaimers).orderBy(asc(privacyDisclaimers.sortOrder));
+  }),
+  createOrder: publicProcedure
+    .input(z.object({
+      customerName: z.string().min(1),
+      customerEmail: z.string().email(),
+      totalAmount: z.string(),
+      itemsSummary: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      const { getDb } = await import("../db");
+      const { orders } = await import("../../drizzle/schema");
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      await db.insert(orders).values({
+        customerName: input.customerName,
+        customerEmail: input.customerEmail,
+        totalAmount: input.totalAmount,
+        itemsSummary: input.itemsSummary,
+        status: "pending"
+      });
+
+      return { success: true };
+    })
 });
 
 export type CommerceRouter = typeof commerceRouter;

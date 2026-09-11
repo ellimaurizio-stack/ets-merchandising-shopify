@@ -2,8 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { products, admins, storeSettings } from "../../drizzle/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { products, admins, storeSettings, privacyDisclaimers, orders } from "../../drizzle/schema";
+import { eq, and, asc, desc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export const adminRouter = router({
@@ -165,4 +165,46 @@ export const adminRouter = router({
       }
       return { success: true };
     }),
+
+  listPrivacyDisclaimers: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    return await db.select().from(privacyDisclaimers).orderBy(asc(privacyDisclaimers.sortOrder));
+  }),
+
+  createPrivacyDisclaimer: publicProcedure
+    .input(z.object({
+      title: z.string().min(1),
+      text: z.string().min(1),
+      link: z.string().optional(),
+      isRequired: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      await db.insert(privacyDisclaimers).values({
+        title: input.title,
+        text: input.text,
+        link: input.link || "",
+        isRequired: input.isRequired ? 1 : 0
+      });
+      return { success: true };
+    }),
+
+  deletePrivacyDisclaimer: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db.delete(privacyDisclaimers).where(eq(privacyDisclaimers.id, input.id));
+      return { success: true };
+    }),
+
+  listOrders: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    // We order by most recent first
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }),
 });

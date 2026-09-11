@@ -43,8 +43,10 @@ export const products = mysqlTable("products", {
 
 export const orders = mysqlTable("orders", {
   id: int("id").autoincrement().primaryKey(),
+  customerName: varchar("customerName", { length: 255 }).notNull().default("Sconosciuto"),
   customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
   totalAmount: varchar("totalAmount", { length: 32 }).notNull(),
+  itemsSummary: text("itemsSummary"),
   status: mysqlEnum("status", ["pending", "paid", "shipped"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -55,6 +57,15 @@ export const orderItems = mysqlTable("order_items", {
   productId: varchar("productId", { length: 64 }).notNull(),
   quantity: int("quantity").notNull(),
   priceAmount: varchar("priceAmount", { length: 32 }).notNull(),
+});
+
+export const privacyDisclaimers = mysqlTable("privacy_disclaimers", {
+  id: int("id").autoincrement().primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  text: text("text").notNull(),
+  link: varchar("link", { length: 500 }),
+  isRequired: int("isRequired").default(1).notNull(),
+  sortOrder: int("sortOrder").default(0).notNull(),
 });
 
 export const carts = mysqlTable("carts", {

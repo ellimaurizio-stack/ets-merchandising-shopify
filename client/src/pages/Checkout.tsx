@@ -7,8 +7,11 @@ import { useState } from "react";
 
 export default function Checkout() {
   const [, params] = useRoute("/checkout/:cartId");
-  const { cart, loading, closeCart } = useCart();
+  const { cart, loading, closeCart, clearCart } = useCart();
   const { data: settings } = trpc.commerce.settings.useQuery();
+  const { data: disclaimers } = trpc.commerce.listPrivacyDisclaimers.useQuery();
+  
+  const createOrder = trpc.commerce.createOrder.useMutation();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,6 +23,17 @@ export default function Checkout() {
   const generatePdf = async () => {
     setIsGeneratingPdf(true);
     try {
+      // Create a summary string for the DB
+      const itemsSummary = cart!.items.map(item => `${item.quantity}x ${item.productTitle} (${formatMoney(item.unitPrice)})`).join(", ");
+      
+      // Save order to DB
+      await createOrder.mutateAsync({
+        customerName: name,
+        customerEmail: email,
+        totalAmount: cart!.total.amount,
+        itemsSummary
+      });
+
       const { jsPDF } = await import("jspdf");
       const autoTable = (await import("jspdf-autotable")).default;
 
@@ -64,7 +78,7 @@ export default function Checkout() {
       clearCart();
     } catch (error) {
       console.error("Errore generazione PDF", error);
-      alert("C'è stato un problema nella generazione del PDF.");
+      alert("C'è stato un problema nella registrazione dell'ordine.");
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -150,9 +164,29 @@ export default function Checkout() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
                 <input type="text" required value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
               </div>
+
+              {disclaimers && disclaimers.length > 0 && (
+                <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-800 mb-2">Informative e Privacy</h3>
+                  {disclaimers.map(d => (
+                    <label key={d.id} className="flex items-start gap-3 cursor-pointer">
+                      <input type="checkbox" required={d.isRequired === 1} className="mt-1" />
+                      <div className="text-sm text-gray-600">
+                        {d.text} {d.isRequired === 1 && <span className="text-red-500">*</span>}
+                        {d.link && (
+                          <a href={d.link} target="_blank" rel="noreferrer" className="text-blue-500 ml-1 hover:underline">
+                            Leggi il documento
+                          </a>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
               <div className="pt-4">
                 <button type="submit" disabled={provider === "nessuno" || isGeneratingPdf} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isGeneratingPdf ? "Generazione PDF in corso..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Scarica Riepilogo PDF</> : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>)}
+                  {isGeneratingPdf ? "Registrazione ordine..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Conferma Ordine e Scarica PDF</> : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>)}
                 </button>
               </div>
             </form>

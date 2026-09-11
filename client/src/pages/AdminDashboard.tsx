@@ -303,6 +303,169 @@ export default function AdminDashboard() {
           <PaymentSettingsSection />
         </div>
       </section>
+      {/* SEZIONE PRIVACY E DISCLAIMER */}
+      <hr />
+      <section>
+        <h2 className="mb-4 text-2xl font-bold">Privacy e Informative</h2>
+        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100 mb-6">
+          <PrivacyDisclaimersSection />
+        </div>
+      </section>
+
+      {/* SEZIONE ORDINI RICEVUTI */}
+      <hr />
+      <section>
+        <h2 className="mb-4 text-2xl font-bold">Ordini Ricevuti</h2>
+        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
+          <OrdersSection />
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PrivacyDisclaimersSection() {
+  const utils = trpc.useUtils();
+  const { data: disclaimers, isLoading } = trpc.admin.listPrivacyDisclaimers.useQuery();
+  
+  const [title, setTitle] = useState("");
+  const [text, setText] = useState("");
+  const [link, setLink] = useState("");
+  const [isRequired, setIsRequired] = useState(true);
+
+  const createDisclaimer = trpc.admin.createPrivacyDisclaimer.useMutation({
+    onSuccess: () => {
+      toast.success("Disclaimer aggiunto!");
+      setTitle(""); setText(""); setLink(""); setIsRequired(true);
+      utils.admin.listPrivacyDisclaimers.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const deleteDisclaimer = trpc.admin.deletePrivacyDisclaimer.useMutation({
+    onSuccess: () => {
+      toast.success("Disclaimer eliminato");
+      utils.admin.listPrivacyDisclaimers.invalidate();
+    }
+  });
+
+  return (
+    <div className="flex flex-col gap-6">
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        createDisclaimer.mutate({ title, text, link, isRequired });
+      }} className="flex flex-col gap-4">
+        <h3 className="text-lg font-semibold">Aggiungi nuovo Disclaimer (es. Newsletter, Privacy)</h3>
+        <div>
+          <label className="text-sm font-medium">Titolo interno (es. Accettazione Privacy)</label>
+          <Input required value={title} onChange={e => setTitle(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Testo da mostrare all'utente (es. "Accetto il trattamento dei dati...")</label>
+          <Input required value={text} onChange={e => setText(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Link al documento (opzionale, es. /privacy.pdf o URL Google Drive)</label>
+          <Input value={link} onChange={e => setLink(e.target.value)} />
+        </div>
+        <label className="flex items-center gap-2 mt-2">
+          <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} />
+          <span className="text-sm font-medium">Obbligatorio per procedere con l'ordine</span>
+        </label>
+        <Button type="submit" disabled={createDisclaimer.isPending} className="mt-2 w-auto self-start">Aggiungi</Button>
+      </form>
+
+      <div>
+        <h3 className="mb-4 text-lg font-semibold">Disclaimer Attivi al Checkout</h3>
+        {isLoading ? <p>Caricamento...</p> : (
+          <div className="flex flex-col gap-3">
+            {disclaimers?.map(d => (
+              <div key={d.id} className="border p-4 rounded bg-white flex justify-between items-start">
+                <div>
+                  <p className="font-bold">{d.title} {d.isRequired ? <span className="text-red-500">*</span> : ""}</p>
+                  <p className="text-sm text-gray-600">{d.text}</p>
+                  {d.link && <a href={d.link} target="_blank" rel="noreferrer" className="text-blue-500 text-xs">Vedi documento allegato</a>}
+                </div>
+                <Button variant="destructive" size="sm" onClick={() => deleteDisclaimer.mutate({ id: d.id })}>Elimina</Button>
+              </div>
+            ))}
+            {disclaimers?.length === 0 && <p className="text-sm text-gray-500">Nessun disclaimer configurato. Non apparirà nulla al checkout.</p>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function OrdersSection() {
+  const { data: orders, isLoading } = trpc.admin.listOrders.useQuery();
+
+  const downloadCsv = () => {
+    if (!orders || orders.length === 0) return;
+    
+    // Header
+    const rows = [
+      ["Data", "Nome Cliente", "Email", "Totale", "Articoli Acquistati", "Stato"]
+    ];
+    
+    // Rows
+    orders.forEach(o => {
+      const data = new Date(o.createdAt).toLocaleString("it-IT");
+      // escape quotes in itemsSummary
+      const summary = `"${(o.itemsSummary || "").replace(/"/g, '""')}"`;
+      rows.push([data, `"${o.customerName}"`, o.customerEmail, o.totalAmount, summary, o.status]);
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Ordini_Sito_ETS_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (isLoading) return <p>Caricamento ordini...</p>;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Elenco Ordini Effettuati</h3>
+        <Button onClick={downloadCsv} disabled={!orders || orders.length === 0} variant="outline">
+          Scarica CSV (Excel)
+        </Button>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm text-left border">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="p-3 border-b">Data</th>
+              <th className="p-3 border-b">Cliente</th>
+              <th className="p-3 border-b">Email</th>
+              <th className="p-3 border-b max-w-[200px]">Articoli</th>
+              <th className="p-3 border-b">Totale</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders?.map(o => (
+              <tr key={o.id} className="border-b bg-white hover:bg-gray-50">
+                <td className="p-3 whitespace-nowrap">{new Date(o.createdAt).toLocaleDateString("it-IT")}</td>
+                <td className="p-3 font-medium">{o.customerName}</td>
+                <td className="p-3">{o.customerEmail}</td>
+                <td className="p-3 text-gray-600 text-xs">{o.itemsSummary}</td>
+                <td className="p-3 font-bold">{o.totalAmount}€</td>
+              </tr>
+            ))}
+            {orders?.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-5 text-center text-gray-500">Nessun ordine ricevuto.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

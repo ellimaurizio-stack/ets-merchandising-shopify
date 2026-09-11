@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
-import { products, admins } from "../../drizzle/schema";
+import { products, admins, storeSettings } from "../../drizzle/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -133,6 +133,36 @@ export const adminRouter = router({
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       
       await db.delete(products).where(eq(products.id, input.id));
+      return { success: true };
+    }),
+
+  getSettings: publicProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+    if (result.length > 0) return result[0];
+    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "" };
+  }),
+
+  updateSettings: publicProcedure
+    .input(z.object({
+      paymentProvider: z.string(),
+      stripePublicKey: z.string().optional(),
+      stripeSecretKey: z.string().optional(),
+      paypalClientId: z.string().optional(),
+      bankIban: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+      
+      if (existing.length > 0) {
+        await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));
+      } else {
+        await db.insert(storeSettings).values({ id: "default", ...input });
+      }
       return { success: true };
     }),
 });

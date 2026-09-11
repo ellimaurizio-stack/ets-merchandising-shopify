@@ -119,6 +119,21 @@ export const commerceRouter = router({
         return removeCartLines(input.cartId, input.lineIds);
       }),
   }),
+  settings: publicProcedure.query(async () => {
+    const { getDb } = await import("../db");
+    const { storeSettings } = await import("../../drizzle/schema");
+    const { eq } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) return null;
+    const result = await db.select({
+      paymentProvider: storeSettings.paymentProvider,
+      stripePublicKey: storeSettings.stripePublicKey,
+      paypalClientId: storeSettings.paypalClientId,
+      bankIban: storeSettings.bankIban,
+    }).from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+    if (result.length > 0) return result[0];
+    return { paymentProvider: "nessuno" };
+  }),
 });
 
 export type CommerceRouter = typeof commerceRouter;

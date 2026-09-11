@@ -1,11 +1,13 @@
 import { useCart } from "@/contexts/CartContext";
 import { formatMoney } from "@/lib/format";
+import { trpc } from "@/lib/trpc";
 import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
 import { Link, useRoute } from "wouter";
 
 export default function Checkout() {
   const [, params] = useRoute("/checkout/:cartId");
   const { cart, loading } = useCart();
+  const { data: settings } = trpc.commerce.settings.useQuery();
 
   if (loading) {
     return (
@@ -24,6 +26,8 @@ export default function Checkout() {
     );
   }
 
+  const provider = settings?.paymentProvider || "nessuno";
+
   return (
     <div className="mx-auto max-w-[1000px] px-5 py-12">
       <Link href="/shop" className="mb-8 inline-flex items-center text-sm text-gray-500 hover:text-gray-900">
@@ -37,24 +41,43 @@ export default function Checkout() {
           
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-6">
             <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-              <ShieldCheck className="text-green-600" size={20} /> Pagamento Sicuro
+              <ShieldCheck className="text-green-600" size={20} /> 
+              {provider === "bonifico" ? "Istruzioni di Pagamento" : "Pagamento Sicuro"}
             </h2>
-            <p className="text-gray-600 text-sm mb-6">
-              Questa è una pagina di Checkout preparatoria. Quando sarai pronto ad accettare pagamenti reali, collegheremo qui il tuo provider (es. Stripe, PayPal, o Bonifico Bancario).
-            </p>
             
-            <form className="space-y-4" onSubmit={e => e.preventDefault()}>
+            {provider === "nessuno" && (
+              <p className="text-gray-600 text-sm mb-6">
+                I pagamenti non sono ancora attivi su questo sito. Stiamo configurando il nostro provider.
+              </p>
+            )}
+
+            {provider === "bonifico" && (
+              <div className="bg-slate-50 border p-4 rounded mb-6 text-sm">
+                <p className="font-bold mb-2">Procedura per il Bonifico Bancario:</p>
+                <p>1. Inserisci i tuoi dati qui sotto per confermare l'ordine.</p>
+                <p>2. Effettua un bonifico all'IBAN: <strong className="select-all">{settings?.bankIban || "Non specificato"}</strong></p>
+                <p>3. Il tuo ordine verrà spedito alla ricezione del pagamento.</p>
+              </div>
+            )}
+
+            {provider === "stripe" && (
+              <p className="text-gray-600 text-sm mb-6">
+                Pagamento sicuro tramite Carta di Credito (Stripe è attualmente in fase di test).
+              </p>
+            )}
+            
+            <form className="space-y-4" onSubmit={e => { e.preventDefault(); alert("Funzione in arrivo!"); }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="tu@email.com" />
+                <input type="email" required className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="tu@email.com" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
-                <input type="text" className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
+                <input type="text" required className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
               </div>
               <div className="pt-4">
-                <button type="button" className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633]" onClick={() => alert("Il sistema di pagamento verrà attivato a breve!")}>
-                  <CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}
+                <button type="submit" disabled={provider === "nessuno"} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
+                  {provider === "bonifico" ? "Conferma Ordine" : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>}
                 </button>
               </div>
             </form>

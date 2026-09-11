@@ -294,6 +294,114 @@ export default function AdminDashboard() {
           )}
         </div>
       </section>
+      <hr />
+
+      {/* SEZIONE IMPOSTAZIONI PAGAMENTO */}
+      <section>
+        <h2 className="mb-4 text-2xl font-bold">Impostazioni Pagamento</h2>
+        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
+          <PaymentSettingsSection />
+        </div>
+      </section>
     </div>
+  );
+}
+
+function PaymentSettingsSection() {
+  const utils = trpc.useUtils();
+  const { data: settings, isLoading } = trpc.admin.getSettings.useQuery();
+  
+  const [provider, setProvider] = useState("nessuno");
+  const [stripePublic, setStripePublic] = useState("");
+  const [stripeSecret, setStripeSecret] = useState("");
+  const [paypalClient, setPaypalClient] = useState("");
+  const [iban, setIban] = useState("");
+
+  const updateSettings = trpc.admin.updateSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Impostazioni di pagamento salvate!");
+      utils.admin.getSettings.invalidate();
+    },
+    onError: (err) => toast.error(`Errore: ${err.message}`)
+  });
+
+  // Effect to load initial data
+  import("react").then((React) => {
+    React.useEffect(() => {
+      if (settings) {
+        setProvider(settings.paymentProvider);
+        setStripePublic(settings.stripePublicKey || "");
+        setStripeSecret(settings.stripeSecretKey || "");
+        setPaypalClient(settings.paypalClientId || "");
+        setIban(settings.bankIban || "");
+      }
+    }, [settings]);
+  });
+
+  if (isLoading) return <p>Caricamento impostazioni...</p>;
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      updateSettings.mutate({
+        paymentProvider: provider,
+        stripePublicKey: stripePublic,
+        stripeSecretKey: stripeSecret,
+        paypalClientId: paypalClient,
+        bankIban: iban
+      });
+    }} className="flex flex-col gap-4">
+      <div>
+        <label className="mb-1 block text-sm font-medium">Provider di Pagamento Attivo</label>
+        <select 
+          value={provider} 
+          onChange={(e) => setProvider(e.target.value)}
+          className="w-full rounded-md border border-slate-300 px-3 py-2"
+        >
+          <option value="nessuno">Nessuno (Checkout disabilitato)</option>
+          <option value="stripe">Stripe (Carte di credito)</option>
+          <option value="paypal">PayPal</option>
+          <option value="bonifico">Bonifico Bancario</option>
+        </select>
+      </div>
+
+      {provider === "stripe" && (
+        <div className="space-y-4 p-4 border rounded bg-white">
+          <h4 className="font-semibold text-sm">Configurazione Stripe</h4>
+          <div>
+            <label className="mb-1 block text-xs text-gray-600">Chiave Pubblica (Publishable key)</label>
+            <Input value={stripePublic} onChange={e => setStripePublic(e.target.value)} placeholder="pk_test_..." />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-gray-600">Chiave Segreta (Secret key)</label>
+            <Input type="password" value={stripeSecret} onChange={e => setStripeSecret(e.target.value)} placeholder="sk_test_..." />
+          </div>
+        </div>
+      )}
+
+      {provider === "paypal" && (
+        <div className="space-y-4 p-4 border rounded bg-white">
+          <h4 className="font-semibold text-sm">Configurazione PayPal</h4>
+          <div>
+            <label className="mb-1 block text-xs text-gray-600">Client ID</label>
+            <Input value={paypalClient} onChange={e => setPaypalClient(e.target.value)} placeholder="Inserisci il Client ID di PayPal" />
+          </div>
+        </div>
+      )}
+
+      {provider === "bonifico" && (
+        <div className="space-y-4 p-4 border rounded bg-white">
+          <h4 className="font-semibold text-sm">Coordinate Bancarie</h4>
+          <div>
+            <label className="mb-1 block text-xs text-gray-600">IBAN dell'Associazione</label>
+            <Input value={iban} onChange={e => setIban(e.target.value)} placeholder="IT00A0000000000000000000000" />
+          </div>
+        </div>
+      )}
+
+      <Button type="submit" disabled={updateSettings.isPending} className="mt-2 w-full sm:w-auto self-start">
+        {updateSettings.isPending ? "Salvataggio..." : "Salva Impostazioni"}
+      </Button>
+    </form>
   );
 }

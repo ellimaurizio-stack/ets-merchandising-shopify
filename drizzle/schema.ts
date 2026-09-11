@@ -74,3 +74,12 @@ export const admins = mysqlTable("admins", {
   username: varchar("username", { length: 255 }).notNull().unique(),
   password: text("password").notNull(),
 });
+
+export const storeSettings = mysqlTable("store_settings", {
+  id: varchar("id", { length: 32 }).primaryKey(),
+  paymentProvider: varchar("paymentProvider", { length: 64 }).default("nessuno").notNull(),
+  stripePublicKey: varchar("stripePublicKey", { length: 255 }),
+  stripeSecretKey: varchar("stripeSecretKey", { length: 255 }),
+  paypalClientId: varchar("paypalClientId", { length: 255 }),
+  bankIban: varchar("bankIban", { length: 128 }),
+});

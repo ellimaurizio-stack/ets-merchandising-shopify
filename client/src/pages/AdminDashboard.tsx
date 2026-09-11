@@ -271,6 +271,17 @@ export default function AdminDashboard() {
                         <Input required type="number" min="0" value={heightCm} onChange={(e) => setHeightCm(parseInt(e.target.value) || 0)} placeholder="5" />
                       </div>
                     </div>
+                    <div className="mt-2 text-xs text-slate-500 bg-blue-50 p-3 rounded border border-blue-100">
+                      <strong>Come viene calcolata la spedizione nel carrello:</strong><br/>
+                      Quando l'utente inserisce più pezzi o articoli diversi nel carrello, il sistema crea una "scatola virtuale":
+                      <ul className="list-disc ml-4 mt-1 space-y-1">
+                        <li><strong>Peso Totale:</strong> Viene sommato il peso di tutti gli articoli moltiplicato per la loro quantità.</li>
+                        <li><strong>Volume:</strong> Viene calcolato il volume totale sommando i volumi (L × P × A) di ciascun pezzo nel carrello.</li>
+                        <li><strong>Dimensioni Virtuali:</strong> Si assume come Lato Massimo la lunghezza (L) più grande tra i prodotti e come Lato Medio la larghezza (P) più grande.</li>
+                        <li><strong>Altezza impilata (H):</strong> Si calcola dividendo il Volume totale per (Lato Massimo × Lato Medio).</li>
+                        <li><strong>Standard o Non Standard:</strong> Se la somma Lato Massimo + Lato Medio + Altezza impilata (L+P+H) è ≤ 80cm, la spedizione è Standard. Altrimenti è Non Standard.</li>
+                      </ul>
+                    </div>
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-slate-700">Immagine (carica dal PC)</label>

@@ -11,6 +11,8 @@ import Home from "./pages/Home";
 import ProductDetail from "./pages/ProductDetail";
 import Shop from "./pages/Shop";
 
+import Checkout from "./pages/Checkout";
+
 function Router() {
   return (
     <StorefrontLayout>
@@ -19,6 +21,7 @@ function Router() {
         <Route path="/shop" component={Shop} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/prodotto/:handle" component={ProductDetail} />
+        <Route path="/checkout/:cartId" component={Checkout} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

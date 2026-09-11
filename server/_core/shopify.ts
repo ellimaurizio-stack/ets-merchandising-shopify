@@ -14,15 +14,16 @@ function mapProduct(p: any): Product {
     description: p.description || "",
     descriptionHtml: p.descriptionHtml || p.description || "",
     priceRange: {
-      minVariantPrice: { amount: p.priceAmount, currencyCode: p.currencyCode },
-      maxVariantPrice: { amount: p.priceAmount, currencyCode: p.currencyCode },
+      min: { amount: p.priceAmount, currencyCode: p.currencyCode },
+      max: { amount: p.priceAmount, currencyCode: p.currencyCode },
     },
     images: p.imageUrl ? [{ url: p.imageUrl, altText: p.title, width: 800, height: 800 }] : [],
     variants: [{
-      id: p.id, // Using product ID as variant ID for simplicity
+      id: p.id,
       title: "Default",
       availableForSale: p.availableForSale === 1,
       price: { amount: p.priceAmount, currencyCode: p.currencyCode },
+      compareAtPrice: null,
       selectedOptions: [{ name: "Title", value: "Default Title" }]
     }],
     options: [{ name: "Title", values: ["Default Title"] }],
@@ -76,34 +77,32 @@ async function buildCart(cartId: string): Promise<Cart | null> {
   let totalAmount = 0;
   let totalQuantity = 0;
   
-  const lines = items.map(item => {
+  const formattedItems = items.map(item => {
     const product = productsList.find(p => p.id === item.productId);
     if (!product) return null;
     const price = parseFloat(product.priceAmount) * item.quantity;
     totalAmount += price;
     totalQuantity += item.quantity;
     return {
-      id: String(item.id),
+      lineId: String(item.id),
+      variantId: product.id,
+      productHandle: product.handle,
+      productTitle: product.title,
+      variantTitle: "Default",
+      image: product.imageUrl ? { url: product.imageUrl, altText: product.title, width: 800, height: 800 } : null,
+      unitPrice: { amount: product.priceAmount, currencyCode: product.currencyCode },
       quantity: item.quantity,
-      cost: { totalAmount: { amount: String(price), currencyCode: product.currencyCode } },
-      merchandise: {
-        id: product.id,
-        title: "Default Title",
-        price: { amount: product.priceAmount, currencyCode: product.currencyCode },
-        product: mapProduct(product)
-      }
+      lineTotal: { amount: price.toFixed(2), currencyCode: product.currencyCode }
     };
   }).filter(Boolean) as any[];
 
   return {
     id: cartId,
     checkoutUrl: `/checkout/${cartId}`,
-    totalQuantity,
-    cost: {
-      totalAmount: { amount: String(totalAmount), currencyCode: "EUR" },
-      subtotalAmount: { amount: String(totalAmount), currencyCode: "EUR" }
-    },
-    lines
+    itemCount: totalQuantity,
+    items: formattedItems,
+    subtotal: { amount: totalAmount.toFixed(2), currencyCode: "EUR" },
+    total: { amount: totalAmount.toFixed(2), currencyCode: "EUR" }
   };
 }
 

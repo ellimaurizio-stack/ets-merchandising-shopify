@@ -328,15 +328,33 @@ function PrivacyDisclaimersSection() {
   const utils = trpc.useUtils();
   const { data: disclaimers, isLoading } = trpc.admin.listPrivacyDisclaimers.useQuery();
   
+  const [editId, setEditId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [link, setLink] = useState("");
   const [isRequired, setIsRequired] = useState(true);
 
+  const resetForm = () => {
+    setEditId(null);
+    setTitle("");
+    setText("");
+    setLink("");
+    setIsRequired(true);
+  };
+
   const createDisclaimer = trpc.admin.createPrivacyDisclaimer.useMutation({
     onSuccess: () => {
       toast.success("Disclaimer aggiunto!");
-      setTitle(""); setText(""); setLink(""); setIsRequired(true);
+      resetForm();
+      utils.admin.listPrivacyDisclaimers.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const updateDisclaimer = trpc.admin.updatePrivacyDisclaimer.useMutation({
+    onSuccess: () => {
+      toast.success("Disclaimer aggiornato!");
+      resetForm();
       utils.admin.listPrivacyDisclaimers.invalidate();
     },
     onError: (err) => toast.error(err.message)
@@ -349,13 +367,28 @@ function PrivacyDisclaimersSection() {
     }
   });
 
+  const handleEdit = (d: any) => {
+    setEditId(d.id);
+    setTitle(d.title);
+    setText(d.text);
+    setLink(d.link || "");
+    setIsRequired(d.isRequired === 1);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <form onSubmit={(e) => {
         e.preventDefault();
-        createDisclaimer.mutate({ title, text, link, isRequired });
+        if (editId !== null) {
+          updateDisclaimer.mutate({ id: editId, title, text, link, isRequired });
+        } else {
+          createDisclaimer.mutate({ title, text, link, isRequired });
+        }
       }} className="flex flex-col gap-4">
-        <h3 className="text-lg font-semibold">Aggiungi nuovo Disclaimer (es. Newsletter, Privacy)</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">{editId !== null ? "Modifica Disclaimer" : "Aggiungi nuovo Disclaimer"}</h3>
+          {editId !== null && <Button variant="ghost" onClick={resetForm}>Annulla</Button>}
+        </div>
         <div>
           <label className="text-sm font-medium">Titolo interno (es. Accettazione Privacy)</label>
           <Input required value={title} onChange={e => setTitle(e.target.value)} />
@@ -384,7 +417,9 @@ function PrivacyDisclaimersSection() {
           <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} />
           <span className="text-sm font-medium">Obbligatorio per procedere con l'ordine</span>
         </label>
-        <Button type="submit" disabled={createDisclaimer.isPending} className="mt-2 w-auto self-start">Aggiungi</Button>
+        <Button type="submit" disabled={createDisclaimer.isPending || updateDisclaimer.isPending} className="mt-2 w-auto self-start">
+          {editId !== null ? "Aggiorna Disclaimer" : "Aggiungi"}
+        </Button>
       </form>
 
       <div>
@@ -398,7 +433,10 @@ function PrivacyDisclaimersSection() {
                   <p className="text-sm text-gray-600">{d.text}</p>
                   {d.link && <a href={d.link} target="_blank" rel="noreferrer" download={d.link.startsWith('data:') ? `${d.title}.pdf` : undefined} className="text-blue-500 text-xs mt-1 block">Vedi documento allegato</a>}
                 </div>
-                <Button variant="destructive" size="sm" onClick={() => deleteDisclaimer.mutate({ id: d.id })}>Elimina</Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(d)}>Modifica</Button>
+                  <Button variant="destructive" size="sm" onClick={() => deleteDisclaimer.mutate({ id: d.id })}>Elimina</Button>
+                </div>
               </div>
             ))}
             {disclaimers?.length === 0 && <p className="text-sm text-gray-500">Nessun disclaimer configurato. Non apparirà nulla al checkout.</p>}

@@ -192,6 +192,29 @@ export const adminRouter = router({
       return { success: true };
     }),
 
+  updatePrivacyDisclaimer: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      title: z.string().min(1),
+      text: z.string().min(1),
+      link: z.string().optional(),
+      isRequired: z.boolean()
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      await db.update(privacyDisclaimers)
+        .set({
+          title: input.title,
+          text: input.text,
+          ...(input.link !== undefined ? { link: input.link } : {}),
+          isRequired: input.isRequired ? 1 : 0
+        })
+        .where(eq(privacyDisclaimers.id, input.id));
+      return { success: true };
+    }),
+
   deletePrivacyDisclaimer: publicProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {

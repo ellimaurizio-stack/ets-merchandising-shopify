@@ -67,3 +67,9 @@ export const cartItems = mysqlTable("cart_items", {
   productId: varchar("productId", { length: 64 }).notNull(),
   quantity: int("quantity").notNull(),
 });
+
+export const admins = mysqlTable("admins", {
+  id: int("id").autoincrement().primaryKey(),
+  username: varchar("username", { length: 255 }).notNull().unique(),
+  password: text("password").notNull(),
+});

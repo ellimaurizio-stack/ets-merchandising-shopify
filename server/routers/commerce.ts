@@ -147,7 +147,8 @@ export const commerceRouter = router({
       customerName: z.string().min(1),
       customerEmail: z.string().email(),
       totalAmount: z.string(),
-      itemsSummary: z.string()
+      itemsSummary: z.string(),
+      customFields: z.string().optional()
     }))
     .mutation(async ({ input }) => {
       const { getDb } = await import("../db");
@@ -160,6 +161,7 @@ export const commerceRouter = router({
         customerEmail: input.customerEmail,
         totalAmount: input.totalAmount,
         itemsSummary: input.itemsSummary,
+        customFields: input.customFields,
         status: "pending"
       });
 

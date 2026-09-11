@@ -47,6 +47,7 @@ export const orders = mysqlTable("orders", {
   customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
   totalAmount: varchar("totalAmount", { length: 32 }).notNull(),
   itemsSummary: text("itemsSummary"),
+  customFields: longtext("customFields"), // JSON string of custom fields filled by user
   status: mysqlEnum("status", ["pending", "paid", "shipped"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -93,4 +94,5 @@ export const storeSettings = mysqlTable("store_settings", {
   stripeSecretKey: varchar("stripeSecretKey", { length: 255 }),
   paypalClientId: varchar("paypalClientId", { length: 255 }),
   bankIban: varchar("bankIban", { length: 128 }),
+  checkoutFields: longtext("checkoutFields"), // JSON string of custom field definitions
 });

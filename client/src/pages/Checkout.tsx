@@ -15,10 +15,18 @@ export default function Checkout() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const provider = settings?.paymentProvider || "nessuno";
+  
+  let customFieldsConfig: Array<{id: string, label: string, required: boolean}> = [];
+  if (settings?.checkoutFields) {
+    try {
+      customFieldsConfig = JSON.parse(settings.checkoutFields);
+    } catch(e) {}
+  }
 
   const generatePdf = async () => {
     setIsGeneratingPdf(true);
@@ -26,12 +34,15 @@ export default function Checkout() {
       // Create a summary string for the DB
       const itemsSummary = cart!.items.map(item => `${item.quantity}x ${item.productTitle} (${formatMoney(item.unitPrice)})`).join(", ");
       
+      const customFieldsJson = Object.keys(customValues).length > 0 ? JSON.stringify(customValues) : undefined;
+
       // Save order to DB
       await createOrder.mutateAsync({
         customerName: name,
         customerEmail: email,
         totalAmount: cart!.total.amount,
-        itemsSummary
+        itemsSummary,
+        customFields: customFieldsJson
       });
 
       const { jsPDF } = await import("jspdf");
@@ -46,9 +57,19 @@ export default function Checkout() {
       doc.text(`Cliente: ${name}`, 14, 38);
       doc.text(`Email: ${email}`, 14, 46);
 
+      let currentY = 54;
+      customFieldsConfig.forEach(field => {
+        const val = customValues[field.label] || "Non specificato";
+        doc.text(`${field.label}: ${val}`, 14, currentY);
+        currentY += 8;
+      });
+
       if (provider === "bonifico") {
-        doc.text("Metodo di pagamento: Bonifico Bancario", 14, 54);
-        doc.text(`IBAN: ${settings?.bankIban || "Non specificato"}`, 14, 62);
+        doc.text("Metodo di pagamento: Bonifico Bancario", 14, currentY);
+        doc.text(`IBAN: ${settings?.bankIban || "Non specificato"}`, 14, currentY + 8);
+        currentY += 16;
+      } else {
+        currentY += 8;
       }
 
       const tableData = cart!.items.map(item => [
@@ -59,7 +80,7 @@ export default function Checkout() {
       ]);
 
       autoTable(doc, {
-        startY: provider === "bonifico" ? 75 : 65,
+        startY: currentY,
         head: [['Prodotto', 'Quantità', 'Prezzo Unitario', 'Totale']],
         body: tableData,
       });
@@ -164,6 +185,21 @@ export default function Checkout() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
                 <input type="text" required value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
               </div>
+              
+              {customFieldsConfig.map(field => (
+                <div key={field.id}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                  </label>
+                  <input 
+                    type="text" 
+                    required={field.required} 
+                    value={customValues[field.label] || ""} 
+                    onChange={e => setCustomValues({...customValues, [field.label]: e.target.value})} 
+                    className="w-full rounded-md border border-gray-300 px-3 py-2" 
+                  />
+                </div>
+              ))}
 
               {disclaimers && disclaimers.length > 0 && (
                 <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">

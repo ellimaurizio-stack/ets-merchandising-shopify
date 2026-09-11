@@ -141,7 +141,7 @@ export const adminRouter = router({
     if (!db) return null;
     const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
     if (result.length > 0) return result[0];
-    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "" };
+    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "", checkoutFields: "" };
   }),
 
   updateSettings: publicProcedure
@@ -151,6 +151,7 @@ export const adminRouter = router({
       stripeSecretKey: z.string().optional(),
       paypalClientId: z.string().optional(),
       bankIban: z.string().optional(),
+      checkoutFields: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();

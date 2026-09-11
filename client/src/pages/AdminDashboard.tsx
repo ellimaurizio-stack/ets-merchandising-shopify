@@ -467,12 +467,14 @@ function OrdersSection() {
     
     // Header
     const rows = [
-      ["Data", "Nome Cliente", "Email", "Totale", "Articoli Acquistati", "Stato", "Campi Aggiuntivi"]
+      ["Data Ordine", "Data Pagamento", "Nome Cliente", "Email", "Totale", "Articoli Acquistati", "Stato", "Campi Aggiuntivi"]
     ];
     
     // Rows
     orders.forEach(o => {
-      const data = new Date(o.createdAt).toLocaleString("it-IT");
+      const dataOrd = new Date(o.createdAt).toLocaleString("it-IT");
+      const dataPag = o.paymentDate ? new Date(o.paymentDate).toLocaleString("it-IT") : "";
+      
       // escape quotes in itemsSummary
       const summary = `"${(o.itemsSummary || "").replace(/"/g, '""')}"`;
       
@@ -484,7 +486,7 @@ function OrdersSection() {
         } catch(e) {}
       }
 
-      rows.push([data, `"${o.customerName}"`, o.customerEmail, o.totalAmount, summary, o.status, customFieldsStr]);
+      rows.push([dataOrd, dataPag, `"${o.customerName}"`, o.customerEmail, o.totalAmount, summary, o.status, customFieldsStr]);
     });
 
     const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
@@ -516,6 +518,7 @@ function OrdersSection() {
               <th className="p-3 border-b">Cliente</th>
               <th className="p-3 border-b max-w-[200px]">Articoli</th>
               <th className="p-3 border-b">Dettagli Extra</th>
+              <th className="p-3 border-b">Pagamento</th>
               <th className="p-3 border-b">Totale</th>
             </tr>
           </thead>
@@ -531,13 +534,29 @@ function OrdersSection() {
 
               return (
                 <tr key={o.id} className="border-b bg-white hover:bg-gray-50">
-                  <td className="p-3 whitespace-nowrap">{new Date(o.createdAt).toLocaleDateString("it-IT")}</td>
+                  <td className="p-3 whitespace-nowrap">
+                    <div className="font-medium">Ordine:</div>
+                    <div>{new Date(o.createdAt).toLocaleDateString("it-IT")}</div>
+                  </td>
                   <td className="p-3">
                     <div className="font-medium">{o.customerName}</div>
                     <div className="text-xs text-gray-500">{o.customerEmail}</div>
                   </td>
                   <td className="p-3 text-gray-600 text-xs">{o.itemsSummary}</td>
                   <td className="p-3 text-gray-600 text-xs italic">{customFieldsStr || "-"}</td>
+                  <td className="p-3 text-xs">
+                    {o.status === "paid" ? (
+                      <span className="text-green-600 font-bold">Pagato</span>
+                    ) : (
+                      <span className="text-orange-500 font-bold">In attesa</span>
+                    )}
+                    {o.paymentDate && <div className="text-gray-500 mt-1">il {new Date(o.paymentDate).toLocaleDateString("it-IT")}</div>}
+                    {o.paymentReceipt && (
+                      <a href={o.paymentReceipt} download={`Distinta_${o.customerName.replace(/\s+/g, '_')}.pdf`} className="text-blue-500 hover:underline mt-1 block">
+                        Scarica Distinta
+                      </a>
+                    )}
+                  </td>
                   <td className="p-3 font-bold">{o.totalAmount}€</td>
                 </tr>
               );

@@ -16,6 +16,7 @@ export default function Checkout() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
+  const [receiptBase64, setReceiptBase64] = useState<string | undefined>();
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -27,6 +28,23 @@ export default function Checkout() {
       customFieldsConfig = JSON.parse(settings.checkoutFields);
     } catch(e) {}
   }
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1024 * 1024) {
+      alert("Il file PDF supera la dimensione massima di 1 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReceiptBase64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const generatePdf = async () => {
     setIsGeneratingPdf(true);
@@ -42,7 +60,8 @@ export default function Checkout() {
         customerEmail: email,
         totalAmount: cart!.total.amount,
         itemsSummary,
-        customFields: customFieldsJson
+        customFields: customFieldsJson,
+        paymentReceipt: receiptBase64
       });
 
       const { jsPDF } = await import("jspdf");
@@ -167,7 +186,13 @@ export default function Checkout() {
                 <p>1. Inserisci i tuoi dati qui sotto.</p>
                 <p>2. Clicca su Conferma: <strong>scaricherai automaticamente il riepilogo in PDF</strong> con i dati per il pagamento.</p>
                 <p className="mt-2"><strong>IBAN:</strong> {settings?.bankIban || "Non configurato"}</p>
-                <p>3. Il tuo ordine verrà elaborato alla ricezione del bonifico.</p>
+                <p className="mt-2">3. Il tuo ordine verrà elaborato alla ricezione del bonifico, e della relativa distinta.</p>
+                <p className="mt-2">4. Puoi inviare la distinta a <strong>info@ets.a-tono.com</strong> o caricarla direttamente in questa pagina cliccando qui sotto:</p>
+                <div className="mt-3 bg-white p-3 border rounded border-dashed">
+                  <label className="block font-medium mb-1 text-xs">Carica Distinta Bonifico (opzionale, formato PDF max 1MB)</label>
+                  <input type="file" accept="application/pdf" onChange={handleReceiptUpload} className="text-xs" />
+                  {receiptBase64 && <p className="text-xs text-green-600 mt-1">Distinta pronta per essere inviata insieme all'ordine.</p>}
+                </div>
               </div>
             )}
 

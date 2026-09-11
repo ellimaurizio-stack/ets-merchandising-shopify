@@ -149,7 +149,8 @@ export const commerceRouter = router({
       customerEmail: z.string().email(),
       totalAmount: z.string(),
       itemsSummary: z.string(),
-      customFields: z.string().optional()
+      customFields: z.string().optional(),
+      paymentReceipt: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const { getDb } = await import("../db");
@@ -163,7 +164,9 @@ export const commerceRouter = router({
         totalAmount: input.totalAmount,
         itemsSummary: input.itemsSummary,
         customFields: input.customFields,
-        status: "pending"
+        paymentReceipt: input.paymentReceipt,
+        paymentDate: input.paymentReceipt ? new Date() : null,
+        status: input.paymentReceipt ? "paid" : "pending"
       });
 
       return { success: true };

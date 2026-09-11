@@ -48,6 +48,8 @@ export const orders = mysqlTable("orders", {
   totalAmount: varchar("totalAmount", { length: 32 }).notNull(),
   itemsSummary: text("itemsSummary"),
   customFields: longtext("customFields"), // JSON string of custom fields filled by user
+  paymentReceipt: longtext("paymentReceipt"), // Base64 of uploaded receipt PDF
+  paymentDate: timestamp("paymentDate"), // When the receipt was uploaded
   status: mysqlEnum("status", ["pending", "paid", "shipped"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

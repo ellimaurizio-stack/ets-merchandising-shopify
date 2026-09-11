@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,10 +9,12 @@ export default function AdminDashboard() {
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   
+  const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [priceAmount, setPriceAmount] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newAdminUser, setNewAdminUser] = useState("");
   const [newAdminPass, setNewAdminPass] = useState("");
@@ -32,19 +34,33 @@ export default function AdminDashboard() {
     }
   });
 
+  const resetForm = () => {
+    setEditId(null);
+    setTitle("");
+    setPriceAmount("");
+    setImageUrl("");
+    setDescription("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const createProduct = trpc.admin.createProduct.useMutation({
     onSuccess: () => {
       toast.success("Prodotto creato con successo!");
-      setTitle("");
-      setPriceAmount("");
-      setImageUrl("");
-      setDescription("");
+      resetForm();
       utils.admin.listProducts.invalidate();
       utils.commerce.listProducts.invalidate();
     },
-    onError: (err) => {
-      toast.error(`Errore: ${err.message}`);
-    }
+    onError: (err) => toast.error(`Errore: ${err.message}`)
+  });
+
+  const updateProduct = trpc.admin.updateProduct.useMutation({
+    onSuccess: () => {
+      toast.success("Prodotto aggiornato!");
+      resetForm();
+      utils.admin.listProducts.invalidate();
+      utils.commerce.listProducts.invalidate();
+    },
+    onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
   const deleteProduct = trpc.admin.deleteProduct.useMutation({
@@ -57,14 +73,12 @@ export default function AdminDashboard() {
 
   const createAdmin = trpc.admin.createAdmin.useMutation({
     onSuccess: () => {
-      toast.success("Amministratore creato con successo!");
+      toast.success("Amministratore creato!");
       setNewAdminUser("");
       setNewAdminPass("");
       utils.admin.listAdmins.invalidate();
     },
-    onError: (err) => {
-      toast.error(`Errore: ${err.message}`);
-    }
+    onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
   const deleteAdmin = trpc.admin.deleteAdmin.useMutation({
@@ -95,14 +109,37 @@ export default function AdminDashboard() {
     );
   }
 
-  const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createProduct.mutate({ title, priceAmount, imageUrl, description });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setImageUrl(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createAdmin.mutate({ username: newAdminUser, password: newAdminPass });
+    if (editId) {
+      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description });
+    } else {
+      createProduct.mutate({ title, priceAmount, imageUrl, description });
+    }
+  };
+
+  const handleEditClick = (p: any) => {
+    setEditId(p.id);
+    setTitle(p.title);
+    setPriceAmount(p.priceAmount);
+    setImageUrl(p.imageUrl || "");
+    setDescription(p.description || "");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -115,7 +152,10 @@ export default function AdminDashboard() {
       {/* SEZIONE PRODOTTI */}
       <section>
         <div className="mb-6 rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
-          <h2 className="mb-4 text-xl font-semibold">Aggiungi nuovo prodotto</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">{editId ? "Modifica prodotto" : "Aggiungi nuovo prodotto"}</h2>
+            {editId && <Button variant="ghost" onClick={resetForm}>Annulla Modifica</Button>}
+          </div>
           <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium">Titolo Prodotto</label>
@@ -130,11 +170,18 @@ export default function AdminDashboard() {
               <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrizione..." />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">URL Immagine</label>
-              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." />
+              <label className="mb-1 block text-sm font-medium">Immagine (carica dal PC)</label>
+              <div className="flex items-center gap-4">
+                <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="flex-1" />
+                {imageUrl && (
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded border">
+                    <img src={imageUrl} alt="Anteprima" className="h-full w-full object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
-            <Button type="submit" disabled={createProduct.isPending} className="mt-2 w-full sm:w-auto self-start">
-              {createProduct.isPending ? "Salvataggio..." : "Salva Prodotto"}
+            <Button type="submit" disabled={createProduct.isPending || updateProduct.isPending} className="mt-2 w-full sm:w-auto self-start">
+              {createProduct.isPending || updateProduct.isPending ? "Salvataggio..." : (editId ? "Aggiorna Prodotto" : "Salva Prodotto")}
             </Button>
           </form>
         </div>
@@ -154,7 +201,10 @@ export default function AdminDashboard() {
                       <div className="text-sm text-gray-500">€{p.priceAmount}</div>
                     </div>
                   </div>
-                  <Button variant="destructive" size="sm" onClick={() => deleteProduct.mutate({ id: p.id })}>Elimina</Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handleEditClick(p)}>Modifica</Button>
+                    <Button variant="destructive" size="sm" onClick={() => deleteProduct.mutate({ id: p.id })}>Elimina</Button>
+                  </div>
                 </div>
               ))}
               {products?.length === 0 && <p className="text-gray-500">Nessun prodotto presente.</p>}
@@ -170,7 +220,7 @@ export default function AdminDashboard() {
         <h2 className="mb-4 text-2xl font-bold">Gestione Utenti (Amministratori)</h2>
         <div className="mb-6 rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
           <h3 className="mb-4 text-lg font-semibold">Crea nuovo amministratore</h3>
-          <form onSubmit={handleAdminSubmit} className="flex flex-col gap-4">
+          <form onSubmit={(e) => { e.preventDefault(); createAdmin.mutate({ username: newAdminUser, password: newAdminPass }); }} className="flex flex-col gap-4">
             <div>
               <label className="mb-1 block text-sm font-medium">Username</label>
               <Input required minLength={3} value={newAdminUser} onChange={(e) => setNewAdminUser(e.target.value)} placeholder="Es. mario.rossi" />

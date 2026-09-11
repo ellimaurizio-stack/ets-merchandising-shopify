@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, longtext } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -35,7 +35,7 @@ export const products = mysqlTable("products", {
   descriptionHtml: text("descriptionHtml"),
   priceAmount: varchar("priceAmount", { length: 32 }).notNull(), // using varchar for decimals in this simple setup
   currencyCode: varchar("currencyCode", { length: 3 }).default("EUR").notNull(),
-  imageUrl: text("imageUrl"),
+  imageUrl: longtext("imageUrl"),
   availableForSale: int("availableForSale").default(1).notNull(), // 1 true, 0 false
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

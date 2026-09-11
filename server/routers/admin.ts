@@ -88,6 +88,31 @@ export const adminRouter = router({
       return { id, handle };
     }),
 
+  updateProduct: publicProcedure
+    .input(z.object({
+      id: z.string(),
+      title: z.string().min(1),
+      description: z.string().optional(),
+      priceAmount: z.string(),
+      imageUrl: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      await db.update(products)
+        .set({
+          title: input.title,
+          description: input.description || "",
+          descriptionHtml: input.description || "",
+          priceAmount: input.priceAmount,
+          ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+        })
+        .where(eq(products.id, input.id));
+      
+      return { success: true };
+    }),
+
   deleteProduct: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {

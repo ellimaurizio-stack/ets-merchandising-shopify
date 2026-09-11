@@ -5,6 +5,8 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "../_core/hooks/useAuth";
 
+import { startLogin } from "../const";
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
@@ -38,7 +40,13 @@ export default function AdminDashboard() {
   });
 
   if (!user) {
-    return <div className="p-8 text-center">Esegui l'accesso per visualizzare l'area amministratore.</div>;
+    return (
+      <div className="p-8 text-center flex flex-col items-center gap-4 mt-20">
+        <h2 className="text-xl font-bold">Area Riservata</h2>
+        <p>Esegui l'accesso per visualizzare l'area amministratore.</p>
+        <Button onClick={startLogin}>Accedi come Amministratore</Button>
+      </div>
+    );
   }
 
   const handleSubmit = (e: React.FormEvent) => {

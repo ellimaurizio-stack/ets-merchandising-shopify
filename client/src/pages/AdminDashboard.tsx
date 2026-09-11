@@ -356,6 +356,7 @@ function PrivacyDisclaimersSection() {
       toast.success("Disclaimer aggiunto!");
       resetForm();
       utils.admin.listPrivacyDisclaimers.invalidate();
+      utils.commerce.listPrivacyDisclaimers.invalidate();
     },
     onError: (err) => toast.error(err.message)
   });
@@ -365,6 +366,7 @@ function PrivacyDisclaimersSection() {
       toast.success("Disclaimer aggiornato!");
       resetForm();
       utils.admin.listPrivacyDisclaimers.invalidate();
+      utils.commerce.listPrivacyDisclaimers.invalidate();
     },
     onError: (err) => toast.error(err.message)
   });
@@ -373,6 +375,7 @@ function PrivacyDisclaimersSection() {
     onSuccess: () => {
       toast.success("Disclaimer eliminato");
       utils.admin.listPrivacyDisclaimers.invalidate();
+      utils.commerce.listPrivacyDisclaimers.invalidate();
     }
   });
 
@@ -565,6 +568,7 @@ function PaymentSettingsSection() {
     onSuccess: () => {
       toast.success("Impostazioni di pagamento salvate!");
       utils.admin.getSettings.invalidate();
+      utils.commerce.settings.invalidate();
     },
     onError: (err) => toast.error(`Errore: ${err.message}`)
   });
@@ -662,6 +666,7 @@ function CheckoutFieldsSection() {
     onSuccess: () => {
       toast.success("Campi checkout aggiornati!");
       utils.admin.getSettings.invalidate();
+      utils.commerce.settings.invalidate();
     },
     onError: (err) => toast.error(`Errore: ${err.message}`)
   });

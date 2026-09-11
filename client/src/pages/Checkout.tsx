@@ -1,18 +1,95 @@
 import { useCart } from "@/contexts/CartContext";
 import { formatMoney } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, CreditCard, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CreditCard, ShieldCheck, Download, CheckCircle2 } from "lucide-react";
 import { Link, useRoute } from "wouter";
+import { useState } from "react";
 
 export default function Checkout() {
   const [, params] = useRoute("/checkout/:cartId");
-  const { cart, loading } = useCart();
+  const { cart, loading, closeCart } = useCart();
   const { data: settings } = trpc.commerce.settings.useQuery();
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const provider = settings?.paymentProvider || "nessuno";
+
+  const generatePdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+
+      const doc = new jsPDF();
+      doc.setFontSize(22);
+      doc.text("Riepilogo Ordine", 14, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Data: ${new Date().toLocaleDateString("it-IT")}`, 14, 30);
+      doc.text(`Cliente: ${name}`, 14, 38);
+      doc.text(`Email: ${email}`, 14, 46);
+
+      if (provider === "bonifico") {
+        doc.text("Metodo di pagamento: Bonifico Bancario", 14, 54);
+        doc.text(`IBAN: ${settings?.bankIban || "Non specificato"}`, 14, 62);
+      }
+
+      const tableData = cart!.items.map(item => [
+        item.productTitle,
+        item.quantity.toString(),
+        formatMoney(item.unitPrice),
+        formatMoney(item.lineTotal)
+      ]);
+
+      autoTable(doc, {
+        startY: provider === "bonifico" ? 75 : 65,
+        head: [['Prodotto', 'Quantità', 'Prezzo Unitario', 'Totale']],
+        body: tableData,
+      });
+
+      const finalY = (doc as any).lastAutoTable.finalY || 100;
+      doc.setFontSize(14);
+      doc.text(`Totale Ordine: ${formatMoney(cart!.total)}`, 14, finalY + 15);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text("Grazie per aver sostenuto A-Tono ETS!", 14, finalY + 30);
+
+      doc.save(`Ordine_${name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+      
+      setOrderPlaced(true);
+      clearCart();
+    } catch (error) {
+      console.error("Errore generazione PDF", error);
+      alert("C'è stato un problema nella generazione del PDF.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-gray-500">Caricamento checkout in corso...</p>
+      </div>
+    );
+  }
+
+  if (orderPlaced) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center px-5">
+        <CheckCircle2 className="text-green-500 mb-6" size={64} />
+        <h2 className="text-3xl font-light mb-4 text-[#2b3e52]">Ordine Confermato!</h2>
+        <p className="text-gray-600 mb-8 max-w-md">
+          Grazie {name.split(" ")[0]}! Il tuo ordine è stato registrato. 
+          Hai scaricato il PDF con il riepilogo e le istruzioni per il pagamento.
+        </p>
+        <div className="flex gap-4">
+          <Link href="/shop" className="action-pill">Torna allo shop</Link>
+        </div>
       </div>
     );
   }
@@ -25,8 +102,6 @@ export default function Checkout() {
       </div>
     );
   }
-
-  const provider = settings?.paymentProvider || "nessuno";
 
   return (
     <div className="mx-auto max-w-[1000px] px-5 py-12">
@@ -54,9 +129,9 @@ export default function Checkout() {
             {provider === "bonifico" && (
               <div className="bg-slate-50 border p-4 rounded mb-6 text-sm">
                 <p className="font-bold mb-2">Procedura per il Bonifico Bancario:</p>
-                <p>1. Inserisci i tuoi dati qui sotto per confermare l'ordine.</p>
-                <p>2. Effettua un bonifico all'IBAN: <strong className="select-all">{settings?.bankIban || "Non specificato"}</strong></p>
-                <p>3. Il tuo ordine verrà spedito alla ricezione del pagamento.</p>
+                <p>1. Inserisci i tuoi dati qui sotto.</p>
+                <p>2. Clicca su Conferma: <strong>scaricherai automaticamente il riepilogo in PDF</strong> con l'IBAN.</p>
+                <p>3. Il tuo ordine verrà elaborato alla ricezione del bonifico.</p>
               </div>
             )}
 
@@ -66,18 +141,18 @@ export default function Checkout() {
               </p>
             )}
             
-            <form className="space-y-4" onSubmit={e => { e.preventDefault(); alert("Funzione in arrivo!"); }}>
+            <form className="space-y-4" onSubmit={e => { e.preventDefault(); generatePdf(); }}>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" required className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="tu@email.com" />
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="tu@email.com" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
-                <input type="text" required className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
+                <input type="text" required value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
               </div>
               <div className="pt-4">
-                <button type="submit" disabled={provider === "nessuno"} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
-                  {provider === "bonifico" ? "Conferma Ordine" : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>}
+                <button type="submit" disabled={provider === "nessuno" || isGeneratingPdf} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isGeneratingPdf ? "Generazione PDF in corso..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Scarica Riepilogo PDF</> : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>)}
                 </button>
               </div>
             </form>

@@ -231,4 +231,41 @@ export const adminRouter = router({
     // We order by most recent first
     return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }),
+
+  deleteOrder: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db.delete(orders).where(eq(orders.id, input.id));
+      return { success: true };
+    }),
+
+  deleteAllOrders: publicProcedure
+    .mutation(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      await db.delete(orders);
+      return { success: true };
+    }),
+
+  updateOrderReceipt: publicProcedure
+    .input(z.object({
+      id: z.number(),
+      paymentReceipt: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      await db.update(orders)
+        .set({
+          paymentReceipt: input.paymentReceipt,
+          paymentDate: new Date(),
+          status: "paid"
+        })
+        .where(eq(orders.id, input.id));
+      
+      return { success: true };
+    }),
 });

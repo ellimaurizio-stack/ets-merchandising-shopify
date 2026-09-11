@@ -460,7 +460,32 @@ function PrivacyDisclaimersSection() {
 }
 
 function OrdersSection() {
+  const utils = trpc.useUtils();
   const { data: orders, isLoading } = trpc.admin.listOrders.useQuery();
+
+  const deleteOrder = trpc.admin.deleteOrder.useMutation({
+    onSuccess: () => {
+      toast.success("Ordine eliminato.");
+      utils.admin.listOrders.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const deleteAllOrders = trpc.admin.deleteAllOrders.useMutation({
+    onSuccess: () => {
+      toast.success("Tutti gli ordini sono stati eliminati.");
+      utils.admin.listOrders.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  const updateReceipt = trpc.admin.updateOrderReceipt.useMutation({
+    onSuccess: () => {
+      toast.success("Distinta allegata e ordine aggiornato a Pagato.");
+      utils.admin.listOrders.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
 
   const downloadCsv = () => {
     if (!orders || orders.length === 0) return;
@@ -499,15 +524,38 @@ function OrdersSection() {
     document.body.removeChild(link);
   };
 
+  const handleDeleteAll = () => {
+    if (window.confirm("SEI SICURO? Questa operazione eliminerà permanentemente TUTTI gli ordini dal database!")) {
+      deleteAllOrders.mutate();
+    }
+  };
+
+  const handleAdminReceiptUpload = (orderId: number, file: File) => {
+    if (file.size > 1024 * 1024) {
+      alert("Il file PDF supera la dimensione massima di 1 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      updateReceipt.mutate({ id: orderId, paymentReceipt: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (isLoading) return <p>Caricamento ordini...</p>;
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold">Elenco Ordini Effettuati</h3>
-        <Button onClick={downloadCsv} disabled={!orders || orders.length === 0} variant="outline">
-          Scarica CSV (Excel)
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={downloadCsv} disabled={!orders || orders.length === 0} variant="outline">
+            Scarica CSV (Excel)
+          </Button>
+          <Button onClick={handleDeleteAll} disabled={!orders || orders.length === 0} variant="destructive">
+            Elimina Tutti
+          </Button>
+        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -520,6 +568,7 @@ function OrdersSection() {
               <th className="p-3 border-b">Dettagli Extra</th>
               <th className="p-3 border-b">Pagamento</th>
               <th className="p-3 border-b">Totale</th>
+              <th className="p-3 border-b text-right">Azioni</th>
             </tr>
           </thead>
           <tbody>
@@ -556,14 +605,38 @@ function OrdersSection() {
                         Scarica Distinta
                       </a>
                     )}
+                    {!o.paymentReceipt && (
+                      <div className="mt-2">
+                        <label className="text-[10px] text-gray-500 block mb-1">Allega distinta da Email</label>
+                        <input 
+                          type="file" 
+                          accept="application/pdf" 
+                          className="max-w-[120px] text-[10px]"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) handleAdminReceiptUpload(o.id, e.target.files[0]);
+                          }}
+                        />
+                      </div>
+                    )}
                   </td>
                   <td className="p-3 font-bold">{o.totalAmount}€</td>
+                  <td className="p-3 text-right">
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => {
+                        if(window.confirm("Eliminare questo ordine?")) deleteOrder.mutate({ id: o.id });
+                      }}
+                    >
+                      Elimina
+                    </Button>
+                  </td>
                 </tr>
               );
             })}
             {orders?.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-5 text-center text-gray-500">Nessun ordine ricevuto.</td>
+                <td colSpan={7} className="p-5 text-center text-gray-500">Nessun ordine ricevuto.</td>
               </tr>
             )}
           </tbody>

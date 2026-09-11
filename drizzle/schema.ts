@@ -37,6 +37,10 @@ export const products = mysqlTable("products", {
   currencyCode: varchar("currencyCode", { length: 3 }).default("EUR").notNull(),
   imageUrl: longtext("imageUrl"),
   availableForSale: int("availableForSale").default(1).notNull(), // 1 true, 0 false
+  weightGrams: int("weightGrams").default(0).notNull(),
+  lengthCm: int("lengthCm").default(0).notNull(),
+  widthCm: int("widthCm").default(0).notNull(),
+  heightCm: int("heightCm").default(0).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
@@ -46,6 +50,7 @@ export const orders = mysqlTable("orders", {
   customerName: varchar("customerName", { length: 255 }).notNull().default("Sconosciuto"),
   customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
   totalAmount: varchar("totalAmount", { length: 32 }).notNull(),
+  shippingCost: varchar("shippingCost", { length: 32 }).default("0").notNull(),
   itemsSummary: text("itemsSummary"),
   customFields: longtext("customFields"), // JSON string of custom fields filled by user
   paymentReceipt: longtext("paymentReceipt"), // Base64 of uploaded receipt PDF
@@ -97,4 +102,5 @@ export const storeSettings = mysqlTable("store_settings", {
   paypalClientId: varchar("paypalClientId", { length: 255 }),
   bankIban: varchar("bankIban", { length: 128 }),
   checkoutFields: longtext("checkoutFields"), // JSON string of custom field definitions
+  shippingConfig: longtext("shippingConfig"), // JSON string of shipping tiers
 });

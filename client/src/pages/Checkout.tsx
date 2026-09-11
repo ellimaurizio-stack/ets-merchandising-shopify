@@ -23,10 +23,51 @@ export default function Checkout() {
   const provider = settings?.paymentProvider || "nessuno";
   
   let customFieldsConfig: Array<{id: string, label: string, required: boolean}> = [];
-  if (settings?.checkoutFields) {
-    try {
-      customFieldsConfig = JSON.parse(settings.checkoutFields);
-    } catch(e) {}
+  let calculatedShippingCost = 0;
+  let totalWithShipping = cart?.total.amount || "0.00";
+
+  if (settings) {
+    if (settings.checkoutFields) {
+      try {
+        customFieldsConfig = JSON.parse(settings.checkoutFields);
+      } catch(e) {}
+    }
+    
+    if (settings.shippingConfig && cart && cart.items.length > 0) {
+      try {
+        const tiers = JSON.parse(settings.shippingConfig);
+        let totalWeightGrams = 0;
+        let totalVolume = 0;
+        let maxL = 0;
+        let maxW = 0;
+        
+        cart.items.forEach(item => {
+          const qty = item.quantity;
+          const w = item.weightGrams || 0;
+          const l = item.lengthCm || 0;
+          const width = item.widthCm || 0;
+          const h = item.heightCm || 0;
+          
+          totalWeightGrams += w * qty;
+          totalVolume += (l * width * h) * qty;
+          if (l > maxL) maxL = l;
+          if (width > maxW) maxW = width;
+        });
+        
+        const virtualHeight = (maxL > 0 && maxW > 0) ? totalVolume / (maxL * maxW) : 0;
+        const sumDim = maxL + maxW + virtualHeight;
+        const isStandard = sumDim <= 80;
+        
+        const tier = tiers.find((t: any) => totalWeightGrams >= t.minWeight && totalWeightGrams <= t.maxWeight);
+        if (tier) {
+          calculatedShippingCost = parseFloat(isStandard ? tier.standardPrice : tier.nonStandardPrice);
+        }
+      } catch(e) {}
+    }
+  }
+
+  if (cart) {
+    totalWithShipping = (parseFloat(cart.total.amount) + calculatedShippingCost).toFixed(2);
   }
 
   const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,7 +99,8 @@ export default function Checkout() {
       await createOrder.mutateAsync({
         customerName: name,
         customerEmail: email,
-        totalAmount: cart!.total.amount,
+        totalAmount: totalWithShipping,
+        shippingCost: calculatedShippingCost.toFixed(2),
         itemsSummary,
         customFields: customFieldsJson,
         paymentReceipt: receiptBase64
@@ -98,15 +140,24 @@ export default function Checkout() {
         formatMoney(item.lineTotal)
       ]);
 
+      if (calculatedShippingCost > 0) {
+        tableData.push([
+          "Costi di Spedizione",
+          "1",
+          `€${calculatedShippingCost.toFixed(2)}`,
+          `€${calculatedShippingCost.toFixed(2)}`
+        ]);
+      }
+
       autoTable(doc, {
         startY: currentY,
-        head: [['Prodotto', 'Quantità', 'Prezzo Unitario', 'Totale']],
+        head: [['Prodotto/Servizio', 'Quantità', 'Prezzo Unitario', 'Totale']],
         body: tableData,
       });
 
       const finalY = (doc as any).lastAutoTable.finalY || 100;
       doc.setFontSize(14);
-      doc.text(`Totale Ordine: ${formatMoney(cart!.total)}`, 14, finalY + 15);
+      doc.text(`Totale Ordine: €${totalWithShipping}`, 14, finalY + 15);
 
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -249,7 +300,7 @@ export default function Checkout() {
 
               <div className="pt-4">
                 <button type="submit" disabled={provider === "nessuno" || isGeneratingPdf} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isGeneratingPdf ? "Registrazione ordine..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Conferma Ordine e Scarica PDF</> : <><CreditCard className="mr-2" size={20} /> Paga {formatMoney(cart.total)}</>)}
+                  {isGeneratingPdf ? "Registrazione ordine..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Conferma Ordine e Scarica PDF</> : <><CreditCard className="mr-2" size={20} /> Paga €{totalWithShipping}</>)}
                 </button>
               </div>
             </form>
@@ -287,11 +338,11 @@ export default function Checkout() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Spedizione</span>
-              <span className="text-gray-500 italic">Calcolata in seguito</span>
+              <span className="font-medium">€{calculatedShippingCost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 mt-2">
               <span>Totale</span>
-              <span>{formatMoney(cart.total)}</span>
+              <span>€{totalWithShipping}</span>
             </div>
           </div>
         </div>

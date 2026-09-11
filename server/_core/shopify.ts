@@ -29,7 +29,11 @@ function mapProduct(p: any): Product {
     options: [{ name: "Title", values: ["Default Title"] }],
     tags: [],
     productType: "Merchandising",
-    vendor: "A-Tono ETS"
+    vendor: "A-Tono ETS",
+    weightGrams: p.weightGrams,
+    lengthCm: p.lengthCm,
+    widthCm: p.widthCm,
+    heightCm: p.heightCm,
   };
 }
 
@@ -92,7 +96,11 @@ async function buildCart(cartId: string): Promise<Cart | null> {
       image: product.imageUrl ? { url: product.imageUrl, altText: product.title, width: 800, height: 800 } : null,
       unitPrice: { amount: product.priceAmount, currencyCode: product.currencyCode },
       quantity: item.quantity,
-      lineTotal: { amount: price.toFixed(2), currencyCode: product.currencyCode }
+      lineTotal: { amount: price.toFixed(2), currencyCode: product.currencyCode },
+      weightGrams: product.weightGrams,
+      lengthCm: product.lengthCm,
+      widthCm: product.widthCm,
+      heightCm: product.heightCm,
     };
   }).filter(Boolean) as any[];
 

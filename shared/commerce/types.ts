@@ -62,6 +62,11 @@ export type Product = {
   /** Available option dimensions (e.g. Size, Color) for the variant picker. */
   options: ProductOption[];
   variants: ProductVariant[];
+  
+  weightGrams?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
 };
 
 export type Collection = {
@@ -83,6 +88,11 @@ export type CartItem = {
   unitPrice: Money;
   quantity: number;
   lineTotal: Money;
+  
+  weightGrams?: number;
+  lengthCm?: number;
+  widthCm?: number;
+  heightCm?: number;
 };
 
 export type Cart = {

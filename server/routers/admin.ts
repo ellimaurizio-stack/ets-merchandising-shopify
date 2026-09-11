@@ -80,6 +80,10 @@ export const adminRouter = router({
       description: z.string().optional(),
       priceAmount: z.string(),
       imageUrl: z.string().optional(),
+      weightGrams: z.number().optional().default(0),
+      lengthCm: z.number().optional().default(0),
+      widthCm: z.number().optional().default(0),
+      heightCm: z.number().optional().default(0),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -96,6 +100,10 @@ export const adminRouter = router({
         descriptionHtml: input.description || "",
         priceAmount: input.priceAmount,
         imageUrl: input.imageUrl || "",
+        weightGrams: input.weightGrams,
+        lengthCm: input.lengthCm,
+        widthCm: input.widthCm,
+        heightCm: input.heightCm,
       });
       
       return { id, handle };
@@ -108,6 +116,10 @@ export const adminRouter = router({
       description: z.string().optional(),
       priceAmount: z.string(),
       imageUrl: z.string().optional(),
+      weightGrams: z.number().optional(),
+      lengthCm: z.number().optional(),
+      widthCm: z.number().optional(),
+      heightCm: z.number().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -120,6 +132,10 @@ export const adminRouter = router({
           descriptionHtml: input.description || "",
           priceAmount: input.priceAmount,
           ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
+          ...(input.weightGrams !== undefined ? { weightGrams: input.weightGrams } : {}),
+          ...(input.lengthCm !== undefined ? { lengthCm: input.lengthCm } : {}),
+          ...(input.widthCm !== undefined ? { widthCm: input.widthCm } : {}),
+          ...(input.heightCm !== undefined ? { heightCm: input.heightCm } : {}),
         })
         .where(eq(products.id, input.id));
       
@@ -141,17 +157,18 @@ export const adminRouter = router({
     if (!db) return null;
     const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
     if (result.length > 0) return result[0];
-    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "", checkoutFields: "" };
+    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "", checkoutFields: "", shippingConfig: "" };
   }),
 
   updateSettings: publicProcedure
     .input(z.object({
-      paymentProvider: z.string(),
+      paymentProvider: z.string().optional(),
       stripePublicKey: z.string().optional(),
       stripeSecretKey: z.string().optional(),
       paypalClientId: z.string().optional(),
       bankIban: z.string().optional(),
       checkoutFields: z.string().optional(),
+      shippingConfig: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -162,7 +179,7 @@ export const adminRouter = router({
       if (existing.length > 0) {
         await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));
       } else {
-        await db.insert(storeSettings).values({ id: "default", ...input });
+        await db.insert(storeSettings).values({ id: "default", paymentProvider: input.paymentProvider || "nessuno", ...input });
       }
       return { success: true };
     }),

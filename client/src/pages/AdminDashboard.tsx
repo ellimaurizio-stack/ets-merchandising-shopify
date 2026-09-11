@@ -3,9 +3,9 @@ import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut } from "lucide-react";
+import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck } from "lucide-react";
 
-type Tab = "products" | "admins" | "payment" | "checkout" | "privacy" | "orders";
+type Tab = "products" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -16,6 +16,10 @@ export default function AdminDashboard() {
   const [editId, setEditId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [priceAmount, setPriceAmount] = useState("");
+  const [weightGrams, setWeightGrams] = useState(0);
+  const [lengthCm, setLengthCm] = useState(0);
+  const [widthCm, setWidthCm] = useState(0);
+  const [heightCm, setHeightCm] = useState(0);
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +46,10 @@ export default function AdminDashboard() {
     setEditId(null);
     setTitle("");
     setPriceAmount("");
+    setWeightGrams(0);
+    setLengthCm(0);
+    setWidthCm(0);
+    setHeightCm(0);
     setImageUrl("");
     setDescription("");
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -137,9 +145,9 @@ export default function AdminDashboard() {
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editId) {
-      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description });
+      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, weightGrams, lengthCm, widthCm, heightCm });
     } else {
-      createProduct.mutate({ title, priceAmount, imageUrl, description });
+      createProduct.mutate({ title, priceAmount, imageUrl, description, weightGrams, lengthCm, widthCm, heightCm });
     }
   };
 
@@ -147,6 +155,10 @@ export default function AdminDashboard() {
     setEditId(p.id);
     setTitle(p.title);
     setPriceAmount(p.priceAmount);
+    setWeightGrams(p.weightGrams || 0);
+    setLengthCm(p.lengthCm || 0);
+    setWidthCm(p.widthCm || 0);
+    setHeightCm(p.heightCm || 0);
     setImageUrl(p.imageUrl || "");
     setDescription(p.description || "");
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -238,6 +250,28 @@ export default function AdminDashboard() {
                     <label className="mb-1.5 block text-sm font-medium text-slate-700">Descrizione</label>
                     <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrizione..." />
                   </div>
+                  <div className="p-4 border rounded-lg bg-slate-50 space-y-3">
+                    <h4 className="font-semibold text-sm text-slate-700">Dimensioni e Peso per Spedizione</h4>
+                    <p className="text-xs text-slate-500 mb-2">Dati non visibili al cliente, usati per calcolare l'ingombro del pacco e i costi di spedizione.</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">Peso (grammi)</label>
+                        <Input required type="number" min="0" value={weightGrams} onChange={(e) => setWeightGrams(parseInt(e.target.value) || 0)} placeholder="100" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">Lunghezza (cm)</label>
+                        <Input required type="number" min="0" value={lengthCm} onChange={(e) => setLengthCm(parseInt(e.target.value) || 0)} placeholder="20" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">Larghezza (cm)</label>
+                        <Input required type="number" min="0" value={widthCm} onChange={(e) => setWidthCm(parseInt(e.target.value) || 0)} placeholder="20" />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">Altezza (cm)</label>
+                        <Input required type="number" min="0" value={heightCm} onChange={(e) => setHeightCm(parseInt(e.target.value) || 0)} placeholder="5" />
+                      </div>
+                    </div>
+                  </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-slate-700">Immagine (carica dal PC)</label>
                     <div className="flex items-center gap-4">
@@ -302,6 +336,15 @@ export default function AdminDashboard() {
               <h2 className="mb-6 text-3xl font-bold tracking-tight">Ordini Ricevuti</h2>
               <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
                 <OrdersSection />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "shipping" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Costi di Spedizione</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <ShippingSettingsSection />
               </div>
             </div>
           )}
@@ -889,6 +932,127 @@ function CheckoutFieldsSection() {
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export type ShippingTier = {
+  id: string;
+  minWeight: number;
+  maxWeight: number;
+  standardPrice: string;
+  nonStandardPrice: string;
+};
+
+const DEFAULT_TIERS: ShippingTier[] = [
+  { id: "1", minWeight: 0, maxWeight: 3000, standardPrice: "10.30", nonStandardPrice: "15.30" },
+  { id: "2", minWeight: 3000, maxWeight: 5000, standardPrice: "12.20", nonStandardPrice: "18.30" },
+  { id: "3", minWeight: 5000, maxWeight: 10000, standardPrice: "14.30", nonStandardPrice: "21.30" },
+  { id: "4", minWeight: 10000, maxWeight: 20000, standardPrice: "18.30", nonStandardPrice: "23.30" },
+];
+
+function ShippingSettingsSection() {
+  const utils = trpc.useUtils();
+  const { data: settings, isLoading } = trpc.admin.getSettings.useQuery();
+  
+  const [tiers, setTiers] = useState<ShippingTier[]>([]);
+
+  const updateSettings = trpc.admin.updateSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Regole di spedizione salvate!");
+      utils.admin.getSettings.invalidate();
+      utils.commerce.settings.invalidate();
+    },
+    onError: (err) => toast.error(`Errore: ${err.message}`)
+  });
+
+  useEffect(() => {
+    if (settings) {
+      if (settings.shippingConfig) {
+        try {
+          setTiers(JSON.parse(settings.shippingConfig));
+        } catch (e) {
+          setTiers(DEFAULT_TIERS);
+        }
+      } else {
+        setTiers(DEFAULT_TIERS);
+      }
+    }
+  }, [settings]);
+
+  if (isLoading) return <p>Caricamento...</p>;
+
+  const saveTiers = (newTiers: ShippingTier[]) => {
+    setTiers(newTiers);
+    updateSettings.mutate({
+      paymentProvider: settings?.paymentProvider || "nessuno",
+      shippingConfig: JSON.stringify(newTiers)
+    });
+  };
+
+  const addTier = () => {
+    const newTier: ShippingTier = {
+      id: Date.now().toString(),
+      minWeight: 0,
+      maxWeight: 1000,
+      standardPrice: "0.00",
+      nonStandardPrice: "0.00"
+    };
+    saveTiers([...tiers, newTier]);
+  };
+
+  const removeTier = (id: string) => {
+    saveTiers(tiers.filter(t => t.id !== id));
+  };
+
+  const updateTier = (id: string, field: keyof ShippingTier, value: string | number) => {
+    const newTiers = tiers.map(t => t.id === id ? { ...t, [field]: value } : t);
+    setTiers(newTiers);
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-slate-600 mb-6">
+        Qui puoi definire gli scaglioni di prezzo in base al peso totale del carrello e alle dimensioni calcolate. 
+        Il pacco è considerato <b>Standard</b> se la somma virtuale dei lati (L+H+P) è ≤ 80cm, altrimenti è <b>Non Standard</b>.
+      </p>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-12 gap-4 text-xs font-semibold text-slate-500 uppercase tracking-wider px-2">
+          <div className="col-span-3">Peso Minimo (g)</div>
+          <div className="col-span-3">Peso Massimo (g)</div>
+          <div className="col-span-2">Prezzo Standard (€)</div>
+          <div className="col-span-2">Prezzo Non-Standard (€)</div>
+          <div className="col-span-2 text-right">Azioni</div>
+        </div>
+
+        {tiers.map(t => (
+          <div key={t.id} className="grid grid-cols-12 gap-4 items-center bg-slate-50 p-2 rounded-lg border">
+            <div className="col-span-3">
+              <Input type="number" value={t.minWeight} onChange={e => updateTier(t.id, 'minWeight', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="col-span-3">
+              <Input type="number" value={t.maxWeight} onChange={e => updateTier(t.id, 'maxWeight', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="col-span-2">
+              <Input type="number" step="0.01" value={t.standardPrice} onChange={e => updateTier(t.id, 'standardPrice', e.target.value)} />
+            </div>
+            <div className="col-span-2">
+              <Input type="number" step="0.01" value={t.nonStandardPrice} onChange={e => updateTier(t.id, 'nonStandardPrice', e.target.value)} />
+            </div>
+            <div className="col-span-2 text-right">
+              <Button variant="ghost" size="sm" onClick={() => removeTier(t.id)} className="text-red-500 hover:text-red-700">Rimuovi</Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-between items-center mt-6">
+        <Button variant="outline" onClick={addTier}>+ Aggiungi Scaglione</Button>
+        <Button onClick={() => saveTiers(tiers)} disabled={updateSettings.isPending}>
+          {updateSettings.isPending ? "Salvataggio..." : "Salva Modifiche"}
+        </Button>
       </div>
     </div>
   );

@@ -131,6 +131,7 @@ export const commerceRouter = router({
       paypalClientId: storeSettings.paypalClientId,
       bankIban: storeSettings.bankIban,
       checkoutFields: storeSettings.checkoutFields,
+      shippingConfig: storeSettings.shippingConfig,
     }).from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
     if (result.length > 0) return result[0];
     return { paymentProvider: "nessuno" };
@@ -148,6 +149,7 @@ export const commerceRouter = router({
       customerName: z.string().min(1),
       customerEmail: z.string().email(),
       totalAmount: z.string(),
+      shippingCost: z.string().optional().default("0"),
       itemsSummary: z.string(),
       customFields: z.string().optional(),
       paymentReceipt: z.string().optional(),
@@ -162,6 +164,7 @@ export const commerceRouter = router({
         customerName: input.customerName,
         customerEmail: input.customerEmail,
         totalAmount: input.totalAmount,
+        shippingCost: input.shippingCost,
         itemsSummary: input.itemsSummary,
         customFields: input.customFields,
         paymentReceipt: input.paymentReceipt,

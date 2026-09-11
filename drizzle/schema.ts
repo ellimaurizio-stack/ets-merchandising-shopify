@@ -26,3 +26,44 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // TODO: Add your tables here
+
+export const products = mysqlTable("products", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  handle: varchar("handle", { length: 128 }).notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description"),
+  descriptionHtml: text("descriptionHtml"),
+  priceAmount: varchar("priceAmount", { length: 32 }).notNull(), // using varchar for decimals in this simple setup
+  currencyCode: varchar("currencyCode", { length: 3 }).default("EUR").notNull(),
+  imageUrl: text("imageUrl"),
+  availableForSale: int("availableForSale").default(1).notNull(), // 1 true, 0 false
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const orders = mysqlTable("orders", {
+  id: int("id").autoincrement().primaryKey(),
+  customerEmail: varchar("customerEmail", { length: 320 }).notNull(),
+  totalAmount: varchar("totalAmount", { length: 32 }).notNull(),
+  status: mysqlEnum("status", ["pending", "paid", "shipped"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const orderItems = mysqlTable("order_items", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  productId: varchar("productId", { length: 64 }).notNull(),
+  quantity: int("quantity").notNull(),
+  priceAmount: varchar("priceAmount", { length: 32 }).notNull(),
+});
+
+export const carts = mysqlTable("carts", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const cartItems = mysqlTable("cart_items", {
+  id: int("id").autoincrement().primaryKey(),
+  cartId: varchar("cartId", { length: 64 }).notNull(),
+  productId: varchar("productId", { length: 64 }).notNull(),
+  quantity: int("quantity").notNull(),
+});

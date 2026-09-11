@@ -85,7 +85,7 @@ export function CartDrawer() {
             {loading ? <Loader2 className="animate-spin" size={17} aria-hidden="true" /> : <ShoppingBag size={17} aria-hidden="true" />}
             Vai al checkout sicuro
           </button>
-          <p className="mt-3 text-center text-xs leading-5 text-[#7890a6]">Pagamento, spedizione e ordine sono gestiti in modo sicuro da Shopify.</p>
+          <p className="mt-3 text-center text-xs leading-5 text-[#7890a6]">Il pagamento è gestito in modo sicuro. Nessun importo verrà addebitato ora.</p>
         </SheetFooter>
       </SheetContent>
     </Sheet>

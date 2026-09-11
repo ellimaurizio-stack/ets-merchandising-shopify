@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "../_core/trpc";
 import { getDb } from "../db";
 import { products, admins } from "../../drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 export const adminRouter = router({
@@ -58,8 +58,21 @@ export const adminRouter = router({
   listProducts: publicProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-    return await db.select().from(products);
+    return await db.select().from(products).orderBy(asc(products.sortOrder));
   }),
+
+  reorderProducts: publicProcedure
+    .input(z.array(z.object({ id: z.string(), sortOrder: z.number() })))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      // Update each product's sortOrder
+      for (const item of input) {
+        await db.update(products).set({ sortOrder: item.sortOrder }).where(eq(products.id, item.id));
+      }
+      return { success: true };
+    }),
 
   createProduct: publicProcedure
     .input(z.object({

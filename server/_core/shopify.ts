@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { getDb } from "../db";
 import { products, carts, cartItems } from "../../drizzle/schema";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import type { Cart, Collection, Product } from "@shared/commerce/types";
 
@@ -35,7 +35,7 @@ function mapProduct(p: any): Product {
 export async function listProducts(options: { first?: number } = {}): Promise<Product[]> {
   const db = await getDb();
   if (!db) return [];
-  const results = await db.select().from(products);
+  const results = await db.select().from(products).orderBy(asc(products.sortOrder));
   return results.map(mapProduct);
 }
 

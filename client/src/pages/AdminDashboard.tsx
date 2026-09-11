@@ -3,6 +3,7 @@ import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
+import { ArrowUp, ArrowDown } from "lucide-react";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -66,6 +67,13 @@ export default function AdminDashboard() {
   const deleteProduct = trpc.admin.deleteProduct.useMutation({
     onSuccess: () => {
       toast.success("Prodotto eliminato");
+      utils.admin.listProducts.invalidate();
+      utils.commerce.listProducts.invalidate();
+    }
+  });
+
+  const reorderProducts = trpc.admin.reorderProducts.useMutation({
+    onSuccess: () => {
       utils.admin.listProducts.invalidate();
       utils.commerce.listProducts.invalidate();
     }
@@ -142,6 +150,30 @@ export default function AdminDashboard() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const moveUp = (index: number) => {
+    if (!products || index === 0) return;
+    const newArr = [...products];
+    const temp = newArr[index];
+    newArr[index] = newArr[index - 1];
+    newArr[index - 1] = temp;
+    
+    // Save to server
+    const payload = newArr.map((p, i) => ({ id: p.id, sortOrder: i }));
+    reorderProducts.mutate(payload);
+  };
+
+  const moveDown = (index: number) => {
+    if (!products || index === products.length - 1) return;
+    const newArr = [...products];
+    const temp = newArr[index];
+    newArr[index] = newArr[index + 1];
+    newArr[index + 1] = temp;
+    
+    // Save to server
+    const payload = newArr.map((p, i) => ({ id: p.id, sortOrder: i }));
+    reorderProducts.mutate(payload);
+  };
+
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4 space-y-12">
       <div className="flex justify-between items-center">
@@ -191,10 +223,18 @@ export default function AdminDashboard() {
           {isLoadingProducts ? (
             <p>Caricamento prodotti...</p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {products?.map(p => (
+            <div className="flex flex-col gap-4">
+              {products?.map((p, index) => (
                 <div key={p.id} className="flex items-center justify-between rounded-lg border p-4">
                   <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-1 mr-2">
+                      <Button variant="ghost" size="icon" onClick={() => moveUp(index)} disabled={index === 0 || reorderProducts.isPending}>
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => moveDown(index)} disabled={index === products.length - 1 || reorderProducts.isPending}>
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                    </div>
                     {p.imageUrl && <img src={p.imageUrl} alt={p.title} className="h-12 w-12 rounded object-cover" />}
                     <div>
                       <div className="font-medium">{p.title}</div>

@@ -37,6 +37,7 @@ export const products = mysqlTable("products", {
   currencyCode: varchar("currencyCode", { length: 3 }).default("EUR").notNull(),
   imageUrl: longtext("imageUrl"),
   availableForSale: int("availableForSale").default(1).notNull(), // 1 true, 0 false
+  sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

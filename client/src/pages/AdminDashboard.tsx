@@ -3,10 +3,13 @@ import { trpc } from "../lib/trpc";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut } from "lucide-react";
+
+type Tab = "products" | "admins" | "payment" | "checkout" | "privacy" | "orders";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("products");
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   
@@ -175,160 +178,204 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="container mx-auto max-w-4xl py-12 px-4 space-y-12">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Pannello di Controllo</h1>
-        <Button variant="outline" onClick={() => setIsAdmin(false)}>Esci</Button>
-      </div>
-      
-      {/* SEZIONE PRODOTTI */}
-      <section>
-        <div className="mb-6 rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">{editId ? "Modifica prodotto" : "Aggiungi nuovo prodotto"}</h2>
-            {editId && <Button variant="ghost" onClick={resetForm}>Annulla Modifica</Button>}
-          </div>
-          <form onSubmit={handleProductSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Titolo Prodotto</label>
-              <Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Es. Maglietta Logo" />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Prezzo (€)</label>
-              <Input required value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} placeholder="Es. 19.99" type="number" step="0.01" />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Descrizione</label>
-              <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrizione..." />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Immagine (carica dal PC)</label>
-              <div className="flex items-center gap-4">
-                <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="flex-1" />
-                {imageUrl && (
-                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded border">
-                    <img src={imageUrl} alt="Anteprima" className="h-full w-full object-cover" />
+    <div className="flex min-h-screen bg-gray-50 text-slate-900">
+      {/* Sidebar */}
+      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0">
+        <div className="p-6 border-b border-slate-800">
+          <h1 className="text-xl font-bold tracking-tight">CMS Admin</h1>
+        </div>
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          <button onClick={() => setActiveTab("products")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "products" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <Package size={18} /> Prodotti
+          </button>
+          <button onClick={() => setActiveTab("orders")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "orders" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <ShoppingBag size={18} /> Ordini
+          </button>
+          <button onClick={() => setActiveTab("payment")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "payment" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <CreditCard size={18} /> Pagamenti
+          </button>
+          <button onClick={() => setActiveTab("checkout")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "checkout" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <LayoutTemplate size={18} /> Campi Checkout
+          </button>
+          <button onClick={() => setActiveTab("privacy")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "privacy" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <ShieldCheck size={18} /> Privacy & Policy
+          </button>
+          <button onClick={() => setActiveTab("admins")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "admins" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <Users size={18} /> Amministratori
+          </button>
+        </nav>
+        <div className="p-4 mt-auto border-t border-slate-800">
+          <button onClick={() => setIsAdmin(false)} className="flex items-center w-full gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors text-sm font-medium">
+            <LogOut size={18} /> Esci dal CMS
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-10">
+        <div className="max-w-5xl mx-auto space-y-6">
+          
+          {activeTab === "products" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Gestione Prodotti</h2>
+              <div className="mb-8 rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-semibold">{editId ? "Modifica prodotto" : "Aggiungi nuovo prodotto"}</h3>
+                  {editId && <Button variant="ghost" onClick={resetForm}>Annulla Modifica</Button>}
+                </div>
+                <form onSubmit={handleProductSubmit} className="flex flex-col gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Titolo Prodotto</label>
+                      <Input required value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Es. Maglietta Logo" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Prezzo (€)</label>
+                      <Input required value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} placeholder="Es. 19.99" type="number" step="0.01" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Descrizione</label>
+                    <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrizione..." />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Immagine (carica dal PC)</label>
+                    <div className="flex items-center gap-4">
+                      <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="flex-1 cursor-pointer" />
+                      {imageUrl && (
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded border border-slate-200 shadow-sm">
+                          <img src={imageUrl} alt="Anteprima" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button type="submit" disabled={createProduct.isPending || updateProduct.isPending} className="mt-2 w-full sm:w-auto self-start">
+                    {createProduct.isPending || updateProduct.isPending ? "Salvataggio..." : (editId ? "Aggiorna Prodotto" : "Salva Prodotto")}
+                  </Button>
+                </form>
+              </div>
+
+              <div>
+                <h3 className="mb-4 text-xl font-semibold">Catalogo Attuale</h3>
+                {isLoadingProducts ? (
+                  <p className="text-slate-500">Caricamento prodotti...</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {products?.map((p, index) => (
+                      <div key={p.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col gap-1 mr-2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900" onClick={() => moveUp(index)} disabled={index === 0 || reorderProducts.isPending}>
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900" onClick={() => moveDown(index)} disabled={index === products.length - 1 || reorderProducts.isPending}>
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {p.imageUrl ? (
+                            <img src={p.imageUrl} alt={p.title} className="h-14 w-14 rounded-md object-cover border border-slate-100" />
+                          ) : (
+                            <div className="h-14 w-14 rounded-md bg-slate-100 flex items-center justify-center text-slate-300 border border-slate-200">
+                              <Package size={24} />
+                            </div>
+                          )}
+                          <div>
+                            <div className="font-semibold text-slate-900">{p.title}</div>
+                            <div className="text-sm font-medium text-slate-500">€{p.priceAmount}</div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditClick(p)}>Modifica</Button>
+                          <Button variant="destructive" size="sm" onClick={() => { if(window.confirm("Sicuro di voler eliminare?")) deleteProduct.mutate({ id: p.id })}}>Elimina</Button>
+                        </div>
+                      </div>
+                    ))}
+                    {products?.length === 0 && <p className="text-slate-500 p-4 border border-dashed rounded-xl text-center">Nessun prodotto presente nel catalogo.</p>}
                   </div>
                 )}
               </div>
             </div>
-            <Button type="submit" disabled={createProduct.isPending || updateProduct.isPending} className="mt-2 w-full sm:w-auto self-start">
-              {createProduct.isPending || updateProduct.isPending ? "Salvataggio..." : (editId ? "Aggiorna Prodotto" : "Salva Prodotto")}
-            </Button>
-          </form>
-        </div>
-
-        <div>
-          <h2 className="mb-4 text-xl font-semibold">Catalogo Attuale</h2>
-          {isLoadingProducts ? (
-            <p>Caricamento prodotti...</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {products?.map((p, index) => (
-                <div key={p.id} className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col gap-1 mr-2">
-                      <Button variant="ghost" size="icon" onClick={() => moveUp(index)} disabled={index === 0 || reorderProducts.isPending}>
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => moveDown(index)} disabled={index === products.length - 1 || reorderProducts.isPending}>
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {p.imageUrl && <img src={p.imageUrl} alt={p.title} className="h-12 w-12 rounded object-cover" />}
-                    <div>
-                      <div className="font-medium">{p.title}</div>
-                      <div className="text-sm text-gray-500">€{p.priceAmount}</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleEditClick(p)}>Modifica</Button>
-                    <Button variant="destructive" size="sm" onClick={() => deleteProduct.mutate({ id: p.id })}>Elimina</Button>
-                  </div>
-                </div>
-              ))}
-              {products?.length === 0 && <p className="text-gray-500">Nessun prodotto presente.</p>}
-            </div>
           )}
-        </div>
-      </section>
 
-      <hr />
-
-      {/* SEZIONE AMMINISTRATORI */}
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Gestione Utenti (Amministratori)</h2>
-        <div className="mb-6 rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
-          <h3 className="mb-4 text-lg font-semibold">Crea nuovo amministratore</h3>
-          <form onSubmit={(e) => { e.preventDefault(); createAdmin.mutate({ username: newAdminUser, password: newAdminPass }); }} className="flex flex-col gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Username</label>
-              <Input required minLength={3} value={newAdminUser} onChange={(e) => setNewAdminUser(e.target.value)} placeholder="Es. mario.rossi" />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Password</label>
-              <Input required minLength={6} type="password" value={newAdminPass} onChange={(e) => setNewAdminPass(e.target.value)} placeholder="Minimo 6 caratteri" />
-            </div>
-            <Button type="submit" disabled={createAdmin.isPending} className="mt-2 w-full sm:w-auto self-start">
-              {createAdmin.isPending ? "Creazione..." : "Crea Amministratore"}
-            </Button>
-          </form>
-        </div>
-
-        <div>
-          <h3 className="mb-4 text-lg font-semibold">Amministratori Registrati</h3>
-          {isLoadingAdmins ? (
-            <p>Caricamento...</p>
-          ) : (
-            <div className="flex flex-col gap-2 max-w-sm">
-              <div className="flex items-center justify-between rounded-lg border p-3 bg-gray-50">
-                <div className="font-medium">admin (Account Principale)</div>
+          {activeTab === "orders" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Ordini Ricevuti</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <OrdersSection />
               </div>
-              {admins?.map(a => (
-                <div key={a.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="font-medium">{a.username}</div>
-                  <Button variant="destructive" size="sm" onClick={() => deleteAdmin.mutate({ id: a.id })}>Rimuovi</Button>
-                </div>
-              ))}
             </div>
           )}
-        </div>
-      </section>
-      <hr />
 
-      {/* SEZIONE IMPOSTAZIONI PAGAMENTO */}
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Impostazioni Pagamento</h2>
-        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
-          <PaymentSettingsSection />
-        </div>
-      </section>
-      {/* SEZIONE CAMPI CHECKOUT */}
-      <hr />
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Personalizzazione Checkout</h2>
-        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100 mb-6">
-          <CheckoutFieldsSection />
-        </div>
-      </section>
+          {activeTab === "payment" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Impostazioni Pagamento</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <PaymentSettingsSection />
+              </div>
+            </div>
+          )}
 
-      {/* SEZIONE PRIVACY E DISCLAIMER */}
-      <hr />
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Privacy e Informative</h2>
-        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100 mb-6">
-          <PrivacyDisclaimersSection />
-        </div>
-      </section>
+          {activeTab === "checkout" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Personalizzazione Checkout</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <CheckoutFieldsSection />
+              </div>
+            </div>
+          )}
 
-      {/* SEZIONE ORDINI RICEVUTI */}
-      <hr />
-      <section>
-        <h2 className="mb-4 text-2xl font-bold">Ordini Ricevuti</h2>
-        <div className="rounded-xl bg-slate-50 p-6 shadow-sm border border-slate-100">
-          <OrdersSection />
+          {activeTab === "privacy" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Privacy e Informative</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <PrivacyDisclaimersSection />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "admins" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Gestione Amministratori</h2>
+              <div className="mb-8 rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <h3 className="mb-4 text-xl font-semibold">Crea nuovo amministratore</h3>
+                <form onSubmit={(e) => { e.preventDefault(); createAdmin.mutate({ username: newAdminUser, password: newAdminPass }); }} className="flex flex-col gap-4 max-w-sm">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Username</label>
+                    <Input required minLength={3} value={newAdminUser} onChange={(e) => setNewAdminUser(e.target.value)} placeholder="Es. mario.rossi" />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Password</label>
+                    <Input required minLength={6} type="password" value={newAdminPass} onChange={(e) => setNewAdminPass(e.target.value)} placeholder="Minimo 6 caratteri" />
+                  </div>
+                  <Button type="submit" disabled={createAdmin.isPending} className="mt-2 w-full">
+                    {createAdmin.isPending ? "Creazione..." : "Crea Amministratore"}
+                  </Button>
+                </form>
+              </div>
+
+              <div>
+                <h3 className="mb-4 text-xl font-semibold">Amministratori Registrati</h3>
+                {isLoadingAdmins ? (
+                  <p className="text-slate-500">Caricamento...</p>
+                ) : (
+                  <div className="flex flex-col gap-3 max-w-xl">
+                    <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4 bg-slate-50">
+                      <div className="font-medium text-slate-900">admin <span className="text-xs text-slate-500 ml-2 font-normal">(Account Principale - Non eliminabile)</span></div>
+                    </div>
+                    {admins?.map(a => (
+                      <div key={a.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="font-medium text-slate-900">{a.username}</div>
+                        <Button variant="destructive" size="sm" onClick={() => { if(window.confirm("Sicuro di voler revocare l'accesso a questo utente?")) deleteAdmin.mutate({ id: a.id })}}>Revoca Accesso</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
-      </section>
+      </main>
     </div>
   );
 }

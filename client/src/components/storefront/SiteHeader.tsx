@@ -29,17 +29,17 @@ export function SiteHeader() {
         </Link>
 
         {/* Desktop Nav and Cart */}
-        <div className="hidden lg:flex items-center gap-8">
-          <nav className="flex items-center gap-8" aria-label="Navigazione principale">
+        <div className="hidden lg:flex items-center gap-[2rem]">
+          <nav className="flex items-center gap-[2rem]" aria-label="Navigazione principale">
             {navigation.map(item => {
               const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
               const isExternal = item.href.startsWith("http");
               
-              const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 ${
-                isCurrent 
-                  ? "text-[#7a9cbf] border-[#7a9cbf]" 
-                  : "text-white border-transparent hover:text-[#7a9cbf]"
-              }`;
+              const baseClass = "text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors";
+              const activeClass = "text-[#7a9cbf] border-b-[2px] border-[#7a9cbf] pb-[4px]";
+              const inactiveClass = "text-white hover:text-[#7a9cbf]";
+              
+              const linkClass = `${baseClass} ${isCurrent ? activeClass : inactiveClass}`;
 
               return isExternal ? (
                 <a key={item.label} href={item.href} className={linkClass}>
@@ -53,11 +53,10 @@ export function SiteHeader() {
             })}
           </nav>
 
-          <button type="button" className="flex items-center gap-2 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
-            <ShoppingBag aria-hidden="true" size={24} />
-            <span className="bg-[#7a9cbf] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
-              {itemCount}
-            </span>
+          {/* Cart Icon styled simply like a nav link */}
+          <button type="button" className="flex items-center gap-1.5 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
+            <ShoppingBag aria-hidden="true" size={20} />
+            <span className="text-[0.9rem] font-medium">({itemCount})</span>
           </button>
         </div>
 
@@ -83,16 +82,17 @@ export function SiteHeader() {
       </div>
 
       {menuOpen && (
-        <nav className="border-t border-white/10 bg-[#2b3e52] px-[5%] py-4 lg:hidden">
-          <div className="flex flex-col gap-4">
+        <nav className="absolute top-[80px] left-0 w-full bg-[#2b3e52] py-8 text-center shadow-[0_4px_6px_rgba(0,0,0,0.1)] lg:hidden border-t border-white/10">
+          <div className="flex flex-col items-center gap-6">
             {navigation.map(item => {
               const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
               const isExternal = item.href.startsWith("http");
-              const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 inline-block ${
-                isCurrent 
-                  ? "text-[#7a9cbf] border-[#7a9cbf]" 
-                  : "text-white border-transparent hover:text-[#7a9cbf]"
-              }`;
+              
+              const baseClass = "text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors";
+              const activeClass = "text-[#7a9cbf] border-b-[2px] border-[#7a9cbf] pb-[4px]";
+              const inactiveClass = "text-white hover:text-[#7a9cbf]";
+              
+              const linkClass = `${baseClass} ${isCurrent ? activeClass : inactiveClass}`;
 
               return isExternal ? (
                 <a key={item.label} href={item.href} className={linkClass} onClick={() => setMenuOpen(false)}>{item.label}</a>

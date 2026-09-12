@@ -35,7 +35,7 @@ export function SiteHeader() {
               const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
               const isExternal = item.href.startsWith("http");
               
-              const baseClass = "text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors";
+              const baseClass = "text-[0.9rem] font-normal uppercase tracking-[1px] transition-colors";
               const activeClass = "text-[#7a9cbf] border-b-[2px] border-[#7a9cbf] pb-[4px]";
               const inactiveClass = "text-white hover:text-[#7a9cbf]";
               
@@ -56,7 +56,7 @@ export function SiteHeader() {
           {/* Cart Icon styled simply like a nav link */}
           <button type="button" className="flex items-center gap-1.5 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
             <ShoppingBag aria-hidden="true" size={20} />
-            <span className="text-[0.9rem] font-medium">({itemCount})</span>
+            <span className="text-[0.9rem] font-normal">({itemCount})</span>
           </button>
         </div>
 
@@ -64,7 +64,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-4 lg:hidden">
           <button type="button" className="flex items-center gap-1.5 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
             <ShoppingBag aria-hidden="true" size={24} />
-            <span className="text-[0.9rem] font-medium">({itemCount})</span>
+            <span className="text-[0.9rem] font-normal">({itemCount})</span>
           </button>
           
           <div
@@ -84,7 +84,7 @@ export function SiteHeader() {
               const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
               const isExternal = item.href.startsWith("http");
               
-              const baseClass = "text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors";
+              const baseClass = "text-[0.9rem] font-normal uppercase tracking-[1px] transition-colors";
               const activeClass = "text-[#7a9cbf] border-b-[2px] border-[#7a9cbf] pb-[4px]";
               const inactiveClass = "text-white hover:text-[#7a9cbf]";
               

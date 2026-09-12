@@ -23,6 +23,7 @@ export default function AdminDashboard() {
   const [heightCm, setHeightCm] = useState(0);
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionHtml, setDescriptionHtml] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newAdminUser, setNewAdminUser] = useState("");
@@ -53,6 +54,7 @@ export default function AdminDashboard() {
     setHeightCm(0);
     setImageUrl("");
     setDescription("");
+    setDescriptionHtml("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -146,9 +148,9 @@ export default function AdminDashboard() {
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editId) {
-      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, weightGrams, lengthCm, widthCm, heightCm });
+      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm });
     } else {
-      createProduct.mutate({ title, priceAmount, imageUrl, description, weightGrams, lengthCm, widthCm, heightCm });
+      createProduct.mutate({ title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm });
     }
   };
 
@@ -162,6 +164,7 @@ export default function AdminDashboard() {
     setHeightCm(p.heightCm || 0);
     setImageUrl(p.imageUrl || "");
     setDescription(p.description || "");
+    setDescriptionHtml(p.descriptionHtml || "");
     if (fileInputRef.current) fileInputRef.current.value = "";
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

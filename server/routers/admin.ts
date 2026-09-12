@@ -78,6 +78,7 @@ export const adminRouter = router({
     .input(z.object({
       title: z.string().min(1),
       description: z.string().optional(),
+      descriptionHtml: z.string().optional(),
       priceAmount: z.string(),
       imageUrl: z.string().optional(),
       weightGrams: z.number().optional().default(0),
@@ -97,7 +98,7 @@ export const adminRouter = router({
         handle,
         title: input.title,
         description: input.description || "",
-        descriptionHtml: input.description || "",
+        descriptionHtml: input.descriptionHtml || "",
         priceAmount: input.priceAmount,
         imageUrl: input.imageUrl || "",
         weightGrams: input.weightGrams,
@@ -114,6 +115,7 @@ export const adminRouter = router({
       id: z.string(),
       title: z.string().min(1),
       description: z.string().optional(),
+      descriptionHtml: z.string().optional(),
       priceAmount: z.string(),
       imageUrl: z.string().optional(),
       weightGrams: z.number().optional(),
@@ -129,7 +131,7 @@ export const adminRouter = router({
         .set({
           title: input.title,
           description: input.description || "",
-          descriptionHtml: input.description || "",
+          descriptionHtml: input.descriptionHtml || "",
           priceAmount: input.priceAmount,
           ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
           ...(input.weightGrams !== undefined ? { weightGrams: input.weightGrams } : {}),

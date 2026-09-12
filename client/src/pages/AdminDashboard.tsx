@@ -259,9 +259,15 @@ export default function AdminDashboard() {
                       <Input required value={priceAmount} onChange={(e) => setPriceAmount(e.target.value)} placeholder="Es. 19.99" type="number" step="0.01" />
                     </div>
                   </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-medium text-slate-700">Descrizione</label>
-                    <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Breve descrizione..." />
+                  <div className="grid grid-cols-1 gap-5">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Descrizione breve (Appare nel listato in Home)</label>
+                      <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Es. T-shirt in cotone organico..." />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-slate-700">Descrizione lunga HTML (Appare nella pagina di dettaglio del prodotto)</label>
+                      <Textarea value={descriptionHtml} onChange={(e) => setDescriptionHtml(e.target.value)} placeholder="<p>Questa t-shirt <strong>comoda</strong> e traspirante...</p>" rows={5} />
+                    </div>
                   </div>
                   <div className="p-4 border rounded-lg bg-slate-50 space-y-3">
                     <h4 className="font-semibold text-sm text-slate-700">Dimensioni e Peso per Spedizione</h4>

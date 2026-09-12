@@ -57,7 +57,11 @@ export default function ProductDetail() {
             <h1 className="mt-5 font-display text-5xl font-light leading-[0.95] tracking-[-0.04em] text-[#2b3e52] sm:text-6xl">{product.title}</h1>
             <p className="mt-6 font-display text-3xl font-light text-[#7a9cbf]">{selectedVariant ? formatMoney(selectedVariant.price) : formatMoney(product.priceRange.min)}</p>
             <div className="my-8 h-px bg-[#cad8e2]" />
-            <p className="text-base font-light leading-8 text-[#51687e]">{product.description || "Un oggetto scelto per accompagnare i gesti quotidiani e sostenere le iniziative di A-Tono ETS."}</p>
+            {product.descriptionHtml ? (
+              <div className="text-base font-light leading-8 text-[#51687e] prose prose-sm prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+            ) : (
+              <p className="text-base font-light leading-8 text-[#51687e]">{product.description || "Un oggetto scelto per accompagnare i gesti quotidiani e sostenere le iniziative di A-Tono ETS."}</p>
+            )}
             {visibleOptions.map(option => (
               <label key={option.name} className="mt-7 block max-w-xs text-xs font-bold uppercase tracking-[0.15em] text-[#456987]">
                 {option.name}

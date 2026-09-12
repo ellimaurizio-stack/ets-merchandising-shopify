@@ -1,6 +1,6 @@
 export function SiteFooter() {
   return (
-    <footer className="flex flex-col bg-white text-[#2b3e52] pt-16 pb-8 px-[5%]">
+    <footer className="flex flex-col bg-[#eaf2f8] text-[#2b3e52] pt-16 pb-8 px-[5%]">
       <div className="flex flex-wrap justify-between gap-8 mx-auto w-full max-w-[1280px]">
         
         <div className="flex flex-col">

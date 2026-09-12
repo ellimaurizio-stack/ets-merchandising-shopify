@@ -8,8 +8,8 @@ const navigation = [
   { label: "Chi Siamo", href: "https://ellimaurizio-stack.github.io/ETS_sito/chi-siamo.html" },
   { label: "Progetti", href: "https://ellimaurizio-stack.github.io/ETS_sito/progetti.html" },
   { label: "Sostienici", href: "https://ellimaurizio-stack.github.io/ETS_sito/sostienici.html" },
-  { label: "Lo shop", href: "/shop" },
   { label: "Contatti", href: "https://ellimaurizio-stack.github.io/ETS_sito/contatti.html" },
+  { label: "Lo shop", href: "/shop" },
 ];
 
 export function SiteHeader() {
@@ -28,30 +28,41 @@ export function SiteHeader() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-8 lg:flex" aria-label="Navigazione principale">
-          {navigation.map(item => {
-            const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
-            const isExternal = item.href.startsWith("http");
-            
-            const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 ${
-              isCurrent 
-                ? "text-[#7a9cbf] border-[#7a9cbf]" 
-                : "text-white border-transparent hover:text-[#7a9cbf]"
-            }`;
+        {/* Desktop Nav and Cart */}
+        <div className="hidden lg:flex items-center gap-8">
+          <nav className="flex items-center gap-8" aria-label="Navigazione principale">
+            {navigation.map(item => {
+              const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
+              const isExternal = item.href.startsWith("http");
+              
+              const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 ${
+                isCurrent 
+                  ? "text-[#7a9cbf] border-[#7a9cbf]" 
+                  : "text-white border-transparent hover:text-[#7a9cbf]"
+              }`;
 
-            return isExternal ? (
-              <a key={item.label} href={item.href} className={linkClass}>
-                {item.label}
-              </a>
-            ) : (
-              <Link key={item.label} href={item.href} className={linkClass}>
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+              return isExternal ? (
+                <a key={item.label} href={item.href} className={linkClass}>
+                  {item.label}
+                </a>
+              ) : (
+                <Link key={item.label} href={item.href} className={linkClass}>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-        <div className="flex items-center gap-4">
+          <button type="button" className="flex items-center gap-2 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
+            <ShoppingBag aria-hidden="true" size={24} />
+            <span className="bg-[#7a9cbf] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+              {itemCount}
+            </span>
+          </button>
+        </div>
+
+        {/* Mobile controls */}
+        <div className="flex items-center gap-4 lg:hidden">
           <button type="button" className="flex items-center gap-2 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
             <ShoppingBag aria-hidden="true" size={24} />
             <span className="bg-[#7a9cbf] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
@@ -62,7 +73,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setMenuOpen(open => !open)}
-            className="lg:hidden text-white hover:text-[#7a9cbf] transition-colors"
+            className="text-white hover:text-[#7a9cbf] transition-colors"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? "Chiudi menu" : "Apri menu"}
           >

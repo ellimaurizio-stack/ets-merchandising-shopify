@@ -9,7 +9,7 @@ const navigation = [
   { label: "Progetti", href: "https://ellimaurizio-stack.github.io/ETS_sito/progetti.html" },
   { label: "Sostienici", href: "https://ellimaurizio-stack.github.io/ETS_sito/sostienici.html" },
   { label: "Contatti", href: "https://ellimaurizio-stack.github.io/ETS_sito/contatti.html" },
-  { label: "Lo shop", href: "/shop" },
+  { label: "Shop", href: "/shop" },
 ];
 
 export function SiteHeader() {
@@ -32,7 +32,7 @@ export function SiteHeader() {
         <div className="hidden lg:flex items-center gap-[2rem]">
           <nav className="flex items-center gap-[2rem]" aria-label="Navigazione principale">
             {navigation.map(item => {
-              const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
+              const isCurrent = item.href === location || (item.label === "Shop" && location === "/");
               const isExternal = item.href.startsWith("http");
               
               const baseClass = "text-[0.9rem] font-normal uppercase tracking-[1px] transition-colors";
@@ -81,7 +81,7 @@ export function SiteHeader() {
         <nav className="absolute top-[70px] left-0 w-full bg-[#2b3e52] py-8 text-center shadow-[0_4px_6px_rgba(0,0,0,0.1)] lg:hidden">
           <div className="flex flex-col items-center gap-6 m-0 p-0">
             {navigation.map(item => {
-              const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
+              const isCurrent = item.href === location || (item.label === "Shop" && location === "/");
               const isExternal = item.href.startsWith("http");
               
               const baseClass = "text-[0.9rem] font-normal uppercase tracking-[1px] transition-colors";

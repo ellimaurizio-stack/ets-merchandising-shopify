@@ -203,6 +203,9 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab("orders")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "orders" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <ShoppingBag size={18} /> Ordini
           </button>
+          <button onClick={() => setActiveTab("shipping")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "shipping" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <Truck size={18} /> Costi Spedizione
+          </button>
           <button onClick={() => setActiveTab("payment")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "payment" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <CreditCard size={18} /> Pagamenti
           </button>

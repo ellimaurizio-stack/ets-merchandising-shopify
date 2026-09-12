@@ -4,10 +4,12 @@ import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
-  // { label: "Home", href: "/" },
+  { label: "Home", href: "https://ellimaurizio-stack.github.io/ETS_sito/index.html" },
+  { label: "Chi Siamo", href: "https://ellimaurizio-stack.github.io/ETS_sito/chi-siamo.html" },
+  { label: "Progetti", href: "https://ellimaurizio-stack.github.io/ETS_sito/progetti.html" },
+  { label: "Sostienici", href: "https://ellimaurizio-stack.github.io/ETS_sito/sostienici.html" },
   { label: "Lo shop", href: "/shop" },
-  // { label: "Il nostro impatto", href: "/#impatto" },
-  // { label: "A-Tono ETS", href: "https://ets.a-tono.com" },
+  { label: "Contatti", href: "https://ellimaurizio-stack.github.io/ETS_sito/contatti.html" },
 ];
 
 export function SiteHeader() {
@@ -16,61 +18,75 @@ export function SiteHeader() {
   const { itemCount, openCart } = useCart();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-[#2b3e52]/95 text-white shadow-[0_12px_30px_rgba(25,45,65,0.16)] backdrop-blur">
-      <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link href="/" className="flex shrink-0 items-center" aria-label="A-Tono ETS — home shop">
+    <header className="sticky top-0 z-40 bg-[#2b3e52] text-white shadow-md">
+      <div className="mx-auto flex items-center justify-between px-[5%] py-6 max-w-[1440px]">
+        <Link href="/" className="flex shrink-0 items-center gap-[10px] font-heading font-semibold text-[1.8rem] text-white no-underline" aria-label="A-Tono ETS">
           <img
-            src="/manus-storage/ets-logo-navbar_11e75fec.png"
+            src="https://ellimaurizio-stack.github.io/ETS_sito/img/ets-logo-navbar.png"
             alt="A-Tono ETS"
-            className="h-8 w-auto sm:h-9"
+            style={{ maxHeight: "40px", width: "auto" }}
           />
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex" aria-label="Navigazione principale">
           {navigation.map(item => {
-            const isCurrent = item.href === location;
+            const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
             const isExternal = item.href.startsWith("http");
+            
+            const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 ${
+              isCurrent 
+                ? "text-[#7a9cbf] border-[#7a9cbf]" 
+                : "text-white border-transparent hover:text-[#7a9cbf]"
+            }`;
+
             return isExternal ? (
-              <a key={item.label} href={item.href} className="nav-link" target="_blank" rel="noreferrer">
+              <a key={item.label} href={item.href} className={linkClass}>
                 {item.label}
               </a>
             ) : (
-              <Link key={item.label} href={item.href} className={isCurrent ? "nav-link nav-link-active" : "nav-link"}>
+              <Link key={item.label} href={item.href} className={linkClass}>
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button type="button" className="cart-button" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
-            <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.8} />
-            <span className="hidden text-[11px] font-bold uppercase tracking-[0.16em] sm:inline">Carrello</span>
-            <span className="cart-count" aria-hidden="true">{itemCount}</span>
+        <div className="flex items-center gap-4">
+          <button type="button" className="flex items-center gap-2 text-white hover:text-[#7a9cbf] transition-colors" onClick={openCart} aria-label={`Apri carrello, ${itemCount} prodotti`}>
+            <ShoppingBag aria-hidden="true" size={24} />
+            <span className="bg-[#7a9cbf] text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+              {itemCount}
+            </span>
           </button>
+          
           <button
             type="button"
             onClick={() => setMenuOpen(open => !open)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/25 transition-colors hover:bg-white/10 lg:hidden"
+            className="lg:hidden text-white hover:text-[#7a9cbf] transition-colors"
             aria-expanded={menuOpen}
-            aria-controls="mobile-navigation"
             aria-label={menuOpen ? "Chiudi menu" : "Apri menu"}
           >
-            {menuOpen ? <X aria-hidden="true" size={22} /> : <Menu aria-hidden="true" size={23} />}
+            {menuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </div>
 
       {menuOpen && (
-        <nav id="mobile-navigation" className="border-t border-white/10 bg-[#2b3e52] px-5 py-5 lg:hidden" aria-label="Navigazione mobile">
-          <div className="mx-auto flex max-w-[1440px] flex-col gap-1 sm:px-3">
+        <nav className="border-t border-white/10 bg-[#2b3e52] px-[5%] py-4 lg:hidden">
+          <div className="flex flex-col gap-4">
             {navigation.map(item => {
+              const isCurrent = item.href === location || (item.label === "Lo shop" && location === "/");
               const isExternal = item.href.startsWith("http");
-              const commonClass = "rounded-md px-3 py-3 text-xs font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-white/10";
+              const linkClass = `text-[0.9rem] font-medium uppercase tracking-[1px] transition-colors pb-1 border-b-2 inline-block ${
+                isCurrent 
+                  ? "text-[#7a9cbf] border-[#7a9cbf]" 
+                  : "text-white border-transparent hover:text-[#7a9cbf]"
+              }`;
+
               return isExternal ? (
-                <a key={item.label} href={item.href} target="_blank" rel="noreferrer" className={commonClass} onClick={() => setMenuOpen(false)}>{item.label}</a>
+                <a key={item.label} href={item.href} className={linkClass} onClick={() => setMenuOpen(false)}>{item.label}</a>
               ) : (
-                <Link key={item.label} href={item.href} className={commonClass} onClick={() => setMenuOpen(false)}>{item.label}</Link>
+                <Link key={item.label} href={item.href} className={linkClass} onClick={() => setMenuOpen(false)}>{item.label}</Link>
               );
             })}
           </div>

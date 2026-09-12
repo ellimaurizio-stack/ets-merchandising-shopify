@@ -6,6 +6,7 @@ import { Link } from "wouter";
 
 export default function Shop() {
   const { data: products = [], isLoading, isError } = trpc.commerce.products.list.useQuery({ first: 24 });
+  const { data: settings } = trpc.commerce.settings.useQuery();
   const [activeType, setActiveType] = useState("Tutti");
   const types = useMemo<string[]>(() => {
     const productTypes = products
@@ -15,6 +16,10 @@ export default function Shop() {
   }, [products]);
   const filteredProducts = activeType === "Tutti" ? products : products.filter(product => product.productType === activeType);
 
+  const rawTitle = settings?.shopTitle || "Oggetti con un\nsignificato.";
+  const titleParts = rawTitle.split("\n");
+  const description = settings?.shopDescription || "Scegli un oggetto da portare con te ogni giorno. Il tuo acquisto contribuisce a sostenere il lavoro e le iniziative di A-Tono ETS.";
+
   return (
     <main>
       <section className="shop-intro px-5 pb-14 pt-16 sm:px-8 sm:pb-18 sm:pt-24 lg:px-12">
@@ -22,10 +27,18 @@ export default function Shop() {
           <div className="mt-10 grid items-end gap-8 lg:grid-cols-[0.95fr_1.05fr]">
             <div>
               <p className="eyebrow">A-Tono ETS / Shop</p>
-              <h1 className="mt-5 font-display text-5xl font-light leading-[0.91] tracking-[-0.045em] text-[#2b3e52] sm:text-7xl">Oggetti con un<br /><strong className="font-bold text-[#7a9cbf]">significato.</strong></h1>
+              <h1 className="mt-5 font-display text-5xl font-light leading-[0.91] tracking-[-0.045em] text-[#2b3e52] sm:text-7xl">
+                {titleParts[0]}
+                {titleParts.length > 1 && (
+                  <>
+                    <br />
+                    <strong className="font-bold text-[#7a9cbf]">{titleParts.slice(1).join("\n")}</strong>
+                  </>
+                )}
+              </h1>
             </div>
-            <div className="max-w-[600px] border-l-2 border-[#7a9cbf] pl-6 text-lg font-light leading-8 text-[#51687e] sm:pl-8">
-              Scegli un oggetto da portare con te ogni giorno. Il tuo acquisto contribuisce a sostenere il lavoro e le iniziative di A-Tono ETS.
+            <div className="max-w-[600px] border-l-2 border-[#7a9cbf] pl-6 text-lg font-light leading-8 text-[#51687e] sm:pl-8 whitespace-pre-line">
+              {description}
             </div>
           </div>
         </div>

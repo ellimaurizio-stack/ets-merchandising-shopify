@@ -169,6 +169,8 @@ export const adminRouter = router({
       bankIban: z.string().optional(),
       checkoutFields: z.string().optional(),
       shippingConfig: z.string().optional(),
+      shopTitle: z.string().optional(),
+      shopDescription: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();

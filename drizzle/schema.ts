@@ -103,4 +103,6 @@ export const storeSettings = mysqlTable("store_settings", {
   bankIban: varchar("bankIban", { length: 128 }),
   checkoutFields: longtext("checkoutFields"), // JSON string of custom field definitions
   shippingConfig: longtext("shippingConfig"), // JSON string of shipping tiers
+  shopTitle: text("shopTitle"),
+  shopDescription: text("shopDescription"),
 });

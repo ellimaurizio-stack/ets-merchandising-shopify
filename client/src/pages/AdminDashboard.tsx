@@ -5,11 +5,11 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck } from "lucide-react";
 
-type Tab = "products" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
+type Tab = "general" | "products" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<Tab>("products");
+  const [activeTab, setActiveTab] = useState<Tab>("general");
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
   
@@ -230,6 +230,15 @@ export default function AdminDashboard() {
       <main className="flex-1 overflow-y-auto p-10">
         <div className="max-w-5xl mx-auto space-y-6">
           
+          {activeTab === "general" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Impostazioni Shop</h2>
+              <div className="mb-8 rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <ShopSettingsSection />
+              </div>
+            </div>
+          )}
+
           {activeTab === "products" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h2 className="mb-6 text-3xl font-bold tracking-tight">Gestione Prodotti</h2>
@@ -1068,6 +1077,57 @@ function ShippingSettingsSection() {
           {updateSettings.isPending ? "Salvataggio..." : "Salva Modifiche"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+function ShopSettingsSection() {
+  const [title, setTitle] = useState("Oggetti con un\\nsignificato.");
+  const [description, setDescription] = useState("Scegli un oggetto da portare con te ogni giorno. Il tuo acquisto contribuisce a sostenere il lavoro e le iniziative di A-Tono ETS.");
+  const utils = trpc.useUtils();
+  
+  const { data: settings } = trpc.commerce.settings.useQuery(undefined, {
+    onSuccess: (data) => {
+      if (data?.shopTitle) setTitle(data.shopTitle);
+      if (data?.shopDescription) setDescription(data.shopDescription);
+    }
+  });
+
+  const updateSettings = trpc.admin.updateSettings.useMutation({
+    onSuccess: () => {
+      alert("Testi dello shop salvati!");
+      utils.commerce.settings.invalidate();
+    }
+  });
+
+  return (
+    <div className="flex flex-col gap-6 max-w-2xl">
+      <p className="text-sm text-slate-600 mb-2">
+        Modifica il testo introduttivo che appare in alto nella pagina dello shop.
+      </p>
+      
+      <div>
+        <label className="mb-2 block font-medium">Titolo (puoi usare \n per andare a capo)</label>
+        <Input 
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)} 
+          placeholder="Es. Oggetti con un\nsignificato."
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block font-medium">Testo di descrizione</label>
+        <Textarea 
+          value={description} 
+          onChange={(e) => setDescription(e.target.value)} 
+          placeholder="Descrizione dello shop..."
+          rows={4}
+        />
+      </div>
+
+      <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description })} disabled={updateSettings.isPending}>
+        {updateSettings.isPending ? "Salvataggio in corso..." : "Salva Testi"}
+      </Button>
     </div>
   );
 }

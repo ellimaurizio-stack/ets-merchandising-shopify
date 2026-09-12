@@ -19,7 +19,6 @@ export default function Shop() {
     <main>
       <section className="shop-intro px-5 pb-14 pt-16 sm:px-8 sm:pb-18 sm:pt-24 lg:px-12">
         <div className="mx-auto max-w-[1280px]">
-          <Link href="/" className="back-link">Home <ArrowRight size={14} aria-hidden="true" /></Link>
           <div className="mt-10 grid items-end gap-8 lg:grid-cols-[0.95fr_1.05fr]">
             <div>
               <p className="eyebrow">A-Tono ETS / Shop</p>

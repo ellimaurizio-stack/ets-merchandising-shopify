@@ -201,6 +201,9 @@ export default function AdminDashboard() {
           <h1 className="text-xl font-bold tracking-tight">CMS Admin</h1>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
+          <button onClick={() => setActiveTab("general")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "general" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <LayoutTemplate size={18} /> Impostazioni Shop
+          </button>
           <button onClick={() => setActiveTab("products")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "products" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <Package size={18} /> Prodotti
           </button>

@@ -612,6 +612,27 @@ function PrivacyDisclaimersSection() {
     }
   });
 
+  const reorderDisclaimers = trpc.admin.reorderPrivacyDisclaimers.useMutation({
+    onSuccess: () => {
+      utils.admin.listPrivacyDisclaimers.invalidate();
+      utils.commerce.listPrivacyDisclaimers.invalidate();
+    }
+  });
+
+  const handleMoveUp = (index: number) => {
+    if (!disclaimers || index === 0) return;
+    const newOrder = [...disclaimers];
+    [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+    reorderDisclaimers.mutate(newOrder.map(d => d.id));
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (!disclaimers || index === disclaimers.length - 1) return;
+    const newOrder = [...disclaimers];
+    [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    reorderDisclaimers.mutate(newOrder.map(d => d.id));
+  };
+
   const handleEdit = (d: any) => {
     setEditId(d.id);
     setTitle(d.title);
@@ -671,14 +692,16 @@ function PrivacyDisclaimersSection() {
         <h3 className="mb-4 text-lg font-semibold">Disclaimer Attivi al Checkout</h3>
         {isLoading ? <p>Caricamento...</p> : (
           <div className="flex flex-col gap-3">
-            {disclaimers?.map(d => (
+            {disclaimers?.map((d, index) => (
               <div key={d.id} className="border p-4 rounded bg-white flex justify-between items-start">
                 <div>
                   <p className="font-bold">{d.title} {d.isRequired ? <span className="text-red-500">*</span> : ""}</p>
                   <p className="text-sm text-gray-600">{d.text}</p>
                   {d.link && <a href={d.link} target="_blank" rel="noreferrer" download={d.link.startsWith('data:') ? `${d.title}.pdf` : undefined} className="text-blue-500 text-xs mt-1 block">Vedi documento allegato</a>}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 flex-wrap justify-end">
+                  <Button variant="outline" size="sm" onClick={() => handleMoveUp(index)} disabled={index === 0}>↑</Button>
+                  <Button variant="outline" size="sm" onClick={() => handleMoveDown(index)} disabled={index === disclaimers.length - 1} className="mr-2">↓</Button>
                   <Button variant="outline" size="sm" onClick={() => handleEdit(d)}>Modifica</Button>
                   <Button variant="destructive" size="sm" onClick={() => deleteDisclaimer.mutate({ id: d.id })}>Elimina</Button>
                 </div>

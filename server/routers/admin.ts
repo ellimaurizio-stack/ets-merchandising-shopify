@@ -284,6 +284,22 @@ export const adminRouter = router({
       return { success: true };
     }),
 
+  reorderPrivacyDisclaimers: publicProcedure
+    .input(z.array(z.number())) // Array of IDs in the new order
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      
+      // Update sortOrder for each disclaimer based on its index in the array
+      for (let i = 0; i < input.length; i++) {
+        await db.update(privacyDisclaimers)
+          .set({ sortOrder: i })
+          .where(eq(privacyDisclaimers.id, input[i]));
+      }
+      
+      return { success: true };
+    }),
+
   listOrders: publicProcedure.query(async () => {
     const db = await getDb();
     if (!db) return [];

@@ -32,9 +32,9 @@ export default function Checkout() {
     }
   }
 
-  const nameField = customFieldsConfig.find(f => f.validationType === "name");
-  const surnameField = customFieldsConfig.find(f => f.validationType === "surname");
-  const emailField = customFieldsConfig.find(f => f.validationType === "email");
+  const nameField = customFieldsConfig.find(f => f.validationType === "name" || f.label.toLowerCase().includes("nome"));
+  const surnameField = customFieldsConfig.find(f => f.validationType === "surname" || f.label.toLowerCase().includes("cognome"));
+  const emailField = customFieldsConfig.find(f => f.validationType === "email" || f.label.toLowerCase().includes("email") || f.label.toLowerCase().includes("e-mail") || f.label.toLowerCase().includes("mail"));
   
   const name = ((nameField ? (customValues[nameField.label] || "") : "") + " " + (surnameField ? (customValues[surnameField.label] || "") : "")).trim() || "Cliente Anonimo";
   const email = emailField ? (customValues[emailField.label] || "") : "no-email@example.com";

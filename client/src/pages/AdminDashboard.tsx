@@ -1290,27 +1290,58 @@ function ReceiptSettingsSection() {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = (field: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("L'immagine supera i 2MB. Scegli un'immagine più piccola.");
+      e.target.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      handleChange(field, reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="flex flex-col gap-6 max-w-2xl">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">URL Logo (Opzionale)</label>
-        <Input 
-          value={config.logoUrl} 
-          onChange={(e) => handleChange("logoUrl", e.target.value)} 
-          placeholder="Es. https://sito.com/logo.png" 
-        />
-        <p className="text-xs text-slate-500 mt-1">Apparirà in alto nella ricevuta.</p>
-        {config.logoUrl && <img src={config.logoUrl} alt="Preview Logo" className="mt-2 h-12 object-contain" />}
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Logo (Opzionale)</label>
+        <div className="flex flex-col gap-2">
+          <input 
+            type="file" 
+            accept="image/png, image/jpeg"
+            onChange={(e) => handleImageUpload("logoUrl", e)} 
+            className="text-sm"
+          />
+          <p className="text-xs text-slate-500">Apparirà in alto nella ricevuta. (Scegli un'immagine, non incollare un URL web)</p>
+          {config.logoUrl && config.logoUrl.startsWith("data:image") && (
+             <div className="mt-2">
+               <img src={config.logoUrl} alt="Preview Logo" className="h-12 object-contain border p-1 rounded bg-white" />
+               <Button variant="ghost" size="sm" onClick={() => handleChange("logoUrl", "")} className="mt-1 text-red-500 hover:text-red-700">Rimuovi Logo</Button>
+             </div>
+          )}
+        </div>
       </div>
       
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">URL Immagine di Sfondo (Filigrana - Opzionale)</label>
-        <Input 
-          value={config.bgImageUrl} 
-          onChange={(e) => handleChange("bgImageUrl", e.target.value)} 
-          placeholder="Es. https://sito.com/background.jpg" 
-        />
-        {config.bgImageUrl && <img src={config.bgImageUrl} alt="Preview Sfondo" className="mt-2 h-24 object-contain opacity-50" />}
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Immagine di Sfondo / Filigrana (Opzionale)</label>
+        <div className="flex flex-col gap-2">
+          <input 
+            type="file" 
+            accept="image/png, image/jpeg"
+            onChange={(e) => handleImageUpload("bgImageUrl", e)} 
+            className="text-sm"
+          />
+          {config.bgImageUrl && config.bgImageUrl.startsWith("data:image") && (
+             <div className="mt-2">
+               <img src={config.bgImageUrl} alt="Preview Sfondo" className="h-24 object-contain opacity-50 border p-1 rounded" />
+               <Button variant="ghost" size="sm" onClick={() => handleChange("bgImageUrl", "")} className="mt-1 text-red-500 hover:text-red-700">Rimuovi Sfondo</Button>
+             </div>
+          )}
+        </div>
       </div>
 
       <div>

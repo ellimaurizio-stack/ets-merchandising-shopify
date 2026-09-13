@@ -141,7 +141,9 @@ export default function Checkout() {
       const doc = new jsPDF();
       
       if (receiptConfig.bgImageUrl) {
-        const bgBase64 = await getBase64ImageFromUrl(receiptConfig.bgImageUrl);
+        const bgBase64 = receiptConfig.bgImageUrl.startsWith('data:image') 
+          ? receiptConfig.bgImageUrl 
+          : await getBase64ImageFromUrl(receiptConfig.bgImageUrl);
         if (bgBase64) {
           doc.addImage(bgBase64, 'JPEG', 0, 0, 210, 297);
         }
@@ -149,7 +151,9 @@ export default function Checkout() {
 
       let startY = 20;
       if (receiptConfig.logoUrl) {
-        const logoBase64 = await getBase64ImageFromUrl(receiptConfig.logoUrl);
+        const logoBase64 = receiptConfig.logoUrl.startsWith('data:image')
+          ? receiptConfig.logoUrl
+          : await getBase64ImageFromUrl(receiptConfig.logoUrl);
         if (logoBase64) {
           doc.addImage(logoBase64, 'PNG', 14, 10, 40, 20); // Width 40, Height 20 approx
           startY = 40;

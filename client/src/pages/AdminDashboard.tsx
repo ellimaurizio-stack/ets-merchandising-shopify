@@ -980,7 +980,7 @@ function CheckoutFieldsSection() {
   const utils = trpc.useUtils();
   const { data: settings, isLoading } = trpc.admin.getSettings.useQuery();
   
-  const [fields, setFields] = useState<Array<{ id: string, label: string, required: boolean, validationType?: string }>>([]);
+  const [fields, setFields] = useState<Array<{ id: string, label: string, required: boolean, validationType?: string, width?: "full" | "half" }>>([]);
   const [newLabel, setNewLabel] = useState("");
   const [newRequired, setNewRequired] = useState(false);
 
@@ -1094,6 +1094,22 @@ function CheckoutFieldsSection() {
                     </select>
                   </div>
 
+                  <div className="w-[150px]">
+                    <label className="text-xs text-slate-500 mb-1 block">Larghezza</label>
+                    <select 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      value={f.width || "full"}
+                      onChange={(e) => {
+                        const newFields = [...fields];
+                        newFields[i].width = e.target.value as "full" | "half";
+                        saveFields(newFields);
+                      }}
+                    >
+                      <option value="full">Riga Intera</option>
+                      <option value="half">Metà Riga</option>
+                    </select>
+                  </div>
+
                   <div className="flex items-center gap-2 pt-5">
                     <input 
                       type="checkbox" 
@@ -1108,8 +1124,34 @@ function CheckoutFieldsSection() {
                     <label htmlFor={`req-${f.id}`} className="text-sm cursor-pointer">Obbligatorio</label>
                   </div>
 
-                  <div className="pt-5 pl-4 ml-auto border-l">
-                    <Button variant="ghost" className="text-red-500" size="sm" onClick={() => removeField(f.id)}>
+                  <div className="pt-5 pl-4 ml-auto border-l flex gap-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        if (i === 0) return;
+                        const newFields = [...fields];
+                        [newFields[i - 1], newFields[i]] = [newFields[i], newFields[i - 1]];
+                        saveFields(newFields);
+                      }}
+                      disabled={i === 0}
+                    >
+                      ↑
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        if (i === fields.length - 1) return;
+                        const newFields = [...fields];
+                        [newFields[i], newFields[i + 1]] = [newFields[i + 1], newFields[i]];
+                        saveFields(newFields);
+                      }}
+                      disabled={i === fields.length - 1}
+                    >
+                      ↓
+                    </Button>
+                    <Button variant="ghost" className="text-red-500 ml-2" size="sm" onClick={() => removeField(f.id)}>
                       Elimina
                     </Button>
                   </div>

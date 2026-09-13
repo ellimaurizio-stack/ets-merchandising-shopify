@@ -20,7 +20,7 @@ export default function Checkout() {
 
   const provider = settings?.paymentProvider || "nessuno";
   
-  let customFieldsConfig: Array<{id: string, label: string, required: boolean}> = [];
+  let customFieldsConfig: Array<{id: string, label: string, required: boolean, validationType?: string, width?: string}> = [];
   let calculatedShippingCost = 0;
   let totalWithShipping = cart?.total.amount || "0.00";
 
@@ -489,18 +489,18 @@ export default function Checkout() {
             
             <form className="space-y-4" onSubmit={e => { e.preventDefault(); generatePdf(); }}>
 
-              
-              {customFieldsConfig.map(field => (
-                <div key={field.id}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                  </label>
-                  <input 
-                    type={field.validationType === "email" ? "email" : "text"} 
-                    required={field.required} 
-                    value={customValues[field.label] || ""} 
-                    onChange={e => setCustomValues({...customValues, [field.label]: e.target.value})} 
-                    className="w-full rounded-md border border-gray-300 px-3 py-2" 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {customFieldsConfig.map(field => (
+                  <div key={field.id} className={field.width === "half" ? "col-span-1" : "col-span-1 md:col-span-2"}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {field.label} {field.required && <span className="text-red-500">*</span>}
+                    </label>
+                    <input 
+                      type={field.validationType === "email" ? "email" : "text"} 
+                      required={field.required} 
+                      value={customValues[field.label] || ""} 
+                      onChange={e => setCustomValues({...customValues, [field.label]: e.target.value})} 
+                      className="w-full rounded-md border border-gray-300 px-3 py-2" 
                     {...(field.validationType === "cap" ? { 
                       pattern: "\\d{5}", 
                       maxLength: 5, 
@@ -511,6 +511,7 @@ export default function Checkout() {
                   />
                 </div>
               ))}
+              </div>
 
               {disclaimers && disclaimers.length > 0 && (
                 <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">

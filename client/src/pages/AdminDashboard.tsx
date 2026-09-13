@@ -1260,7 +1260,9 @@ function ReceiptSettingsSection() {
     introText: "",
     thankYouText: "Grazie per aver sostenuto A-Tono ETS!",
     tableColor: "#2b3e52",
-    qrCodeUrl: ""
+    qrCodeUrl: "",
+    logoWidth: 40,
+    logoHeight: 20
   });
   
   const utils = trpc.useUtils();
@@ -1320,7 +1322,17 @@ function ReceiptSettingsSection() {
           {config.logoUrl && config.logoUrl.startsWith("data:image") && (
              <div className="mt-2">
                <img src={config.logoUrl} alt="Preview Logo" className="h-12 object-contain border p-1 rounded bg-white" />
-               <Button variant="ghost" size="sm" onClick={() => handleChange("logoUrl", "")} className="mt-1 text-red-500 hover:text-red-700">Rimuovi Logo</Button>
+               <div className="flex gap-4 mt-3">
+                 <div>
+                   <label className="text-xs text-slate-600 block mb-1">Larghezza nel PDF (mm)</label>
+                   <Input type="number" value={config.logoWidth} onChange={(e) => handleChange("logoWidth", e.target.value)} className="w-24 h-8 text-sm" />
+                 </div>
+                 <div>
+                   <label className="text-xs text-slate-600 block mb-1">Altezza nel PDF (mm)</label>
+                   <Input type="number" value={config.logoHeight} onChange={(e) => handleChange("logoHeight", e.target.value)} className="w-24 h-8 text-sm" />
+                 </div>
+               </div>
+               <Button variant="ghost" size="sm" onClick={() => handleChange("logoUrl", "")} className="mt-2 text-red-500 hover:text-red-700">Rimuovi Logo</Button>
              </div>
           )}
         </div>

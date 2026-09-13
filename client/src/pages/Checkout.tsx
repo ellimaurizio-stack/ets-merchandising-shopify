@@ -129,7 +129,9 @@ export default function Checkout() {
         tableColor: "#2b3e52",
         logoUrl: "",
         bgImageUrl: "",
-        qrCodeUrl: ""
+        qrCodeUrl: "",
+        logoWidth: 40,
+        logoHeight: 20
       };
       
       if (settings?.receiptConfig) {
@@ -155,8 +157,10 @@ export default function Checkout() {
           ? receiptConfig.logoUrl
           : await getBase64ImageFromUrl(receiptConfig.logoUrl);
         if (logoBase64) {
-          doc.addImage(logoBase64, 'PNG', 14, 10, 40, 20); // Width 40, Height 20 approx
-          startY = 40;
+          const w = Number(receiptConfig.logoWidth) || 40;
+          const h = Number(receiptConfig.logoHeight) || 20;
+          doc.addImage(logoBase64, 'PNG', 14, 10, w, h);
+          startY = 10 + h + 10;
         }
       }
 
@@ -192,7 +196,17 @@ export default function Checkout() {
         currentY += 8;
       }
 
+      // Pre-fetch product images
+      const productImagesBase64: Record<string, string> = {};
+      for (const item of cart!.items) {
+        if (item.image?.url) {
+          const b64 = await getBase64ImageFromUrl(item.image.url);
+          if (b64) productImagesBase64[item.productId] = b64;
+        }
+      }
+
       const tableData = cart!.items.map(item => [
+        "", // placeholder for image
         item.productTitle,
         item.quantity.toString(),
         formatMoney(item.unitPrice),
@@ -201,6 +215,7 @@ export default function Checkout() {
 
       if (calculatedShippingCost > 0) {
         tableData.push([
+          "",
           "Costi di Spedizione",
           "1",
           `€${calculatedShippingCost.toFixed(2)}`,
@@ -210,9 +225,26 @@ export default function Checkout() {
 
       autoTable(doc, {
         startY: currentY,
-        head: [['Prodotto/Servizio', 'Quantità', 'Prezzo Unitario', 'Totale']],
+        head: [['Img', 'Prodotto/Servizio', 'Quantità', 'Prezzo Unitario', 'Totale']],
         body: tableData,
-        headStyles: { fillColor: receiptConfig.tableColor || "#2b3e52" }
+        headStyles: { fillColor: receiptConfig.tableColor || "#2b3e52" },
+        didDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 0) {
+            // Check if it's a product row
+            if (data.row.index < cart!.items.length) {
+              const item = cart!.items[data.row.index];
+              if (item && productImagesBase64[item.productId]) {
+                const imgSize = 12; // 12x12 mm
+                const xPos = data.cell.x + (data.cell.width - imgSize) / 2;
+                const yPos = data.cell.y + (data.cell.height - imgSize) / 2;
+                doc.addImage(productImagesBase64[item.productId], 'JPEG', xPos, yPos, imgSize, imgSize);
+              }
+            }
+          }
+        },
+        columnStyles: {
+          0: { cellWidth: 18, minCellHeight: 16 } // ensure space for the image
+        }
       });
 
       const finalY = (doc as any).lastAutoTable.finalY || 100;

@@ -1372,6 +1372,62 @@ function ShopSettingsSection() {
   );
 }
 
+function CartSettingsSection() {
+  const [config, setConfig] = useState({
+    buttonText: "Vai al Check out sicuro",
+    disclaimerText: "Il pagamento è gestito in modo sicuro. Nessun importo verrà addebitato ora."
+  });
+  
+  const utils = trpc.useUtils();
+  const { data: settings } = trpc.admin.getSettings.useQuery();
+  const updateSettings = trpc.admin.updateSettings.useMutation({
+    onSuccess: () => {
+      toast.success("Impostazioni carrello salvate!");
+      utils.admin.getSettings.invalidate();
+      utils.commerce.settings.invalidate();
+    },
+    onError: (err) => toast.error(err.message)
+  });
+
+  useEffect(() => {
+    if (settings?.cartConfig) {
+      try {
+        setConfig(prev => ({ ...prev, ...JSON.parse(settings.cartConfig) }));
+      } catch (e) {}
+    }
+  }, [settings]);
+
+  const saveConfig = () => {
+    updateSettings.mutate({
+      cartConfig: JSON.stringify(config)
+    });
+  };
+
+  return (
+    <div className="flex flex-col gap-6 max-w-2xl">
+      <div>
+        <label className="text-sm font-medium mb-1 block">Testo Pulsante Checkout</label>
+        <Input 
+          value={config.buttonText} 
+          onChange={e => setConfig({...config, buttonText: e.target.value})} 
+          placeholder="es: Vai al Check out sicuro"
+        />
+      </div>
+      <div>
+        <label className="text-sm font-medium mb-1 block">Frase di Sicurezza (Disclaimer)</label>
+        <textarea 
+          className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+          value={config.disclaimerText} 
+          onChange={e => setConfig({...config, disclaimerText: e.target.value})} 
+        />
+      </div>
+      <Button onClick={saveConfig} disabled={updateSettings.isPending} className="w-fit">
+        {updateSettings.isPending ? "Salvataggio..." : "Salva Testi Carrello"}
+      </Button>
+    </div>
+  );
+}
+
 function ReceiptSettingsSection() {
   const [config, setConfig] = useState({
     logoUrl: "",

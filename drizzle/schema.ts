@@ -42,6 +42,7 @@ export const products = mysqlTable("products", {
   widthCm: int("widthCm").default(0).notNull(),
   heightCm: int("heightCm").default(0).notNull(),
   sortOrder: int("sortOrder").default(0).notNull(),
+  impactConfig: longtext("impactConfig"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

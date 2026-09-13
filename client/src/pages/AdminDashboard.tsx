@@ -24,6 +24,14 @@ export default function AdminDashboard() {
   const [imageUrl, setImageUrl] = useState("");
   const [description, setDescription] = useState("");
   const [descriptionHtml, setDescriptionHtml] = useState("");
+  
+  const [impactEnabled, setImpactEnabled] = useState(true);
+  const [impactEyebrow, setImpactEyebrow] = useState("Il tuo acquisto sostiene");
+  const [impactTitle, setImpactTitle] = useState("Progetti e iniziative A-Tono ETS");
+  const [impactDescription, setImpactDescription] = useState("Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.");
+  const [impactHref, setImpactHref] = useState("https://ets.a-tono.com/progetti.html");
+  const [impactLinkLabel, setImpactLinkLabel] = useState("Scopri il programma sostenuto");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newAdminUser, setNewAdminUser] = useState("");
@@ -55,6 +63,12 @@ export default function AdminDashboard() {
     setImageUrl("");
     setDescription("");
     setDescriptionHtml("");
+    setImpactEnabled(true);
+    setImpactEyebrow("Il tuo acquisto sostiene");
+    setImpactTitle("Progetti e iniziative A-Tono ETS");
+    setImpactDescription("Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.");
+    setImpactHref("https://ets.a-tono.com/progetti.html");
+    setImpactLinkLabel("Scopri il programma sostenuto");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -80,17 +94,19 @@ export default function AdminDashboard() {
 
   const deleteProduct = trpc.admin.deleteProduct.useMutation({
     onSuccess: () => {
-      toast.success("Prodotto eliminato");
+      toast.success("Prodotto eliminato!");
       utils.admin.listProducts.invalidate();
       utils.commerce.listProducts.invalidate();
-    }
+    },
+    onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
   const reorderProducts = trpc.admin.reorderProducts.useMutation({
     onSuccess: () => {
       utils.admin.listProducts.invalidate();
       utils.commerce.listProducts.invalidate();
-    }
+    },
+    onError: (err) => toast.error(`Errore: ${err.message}`)
   });
 
   const createAdmin = trpc.admin.createAdmin.useMutation({
@@ -147,10 +163,19 @@ export default function AdminDashboard() {
 
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const impactConfig = JSON.stringify({
+      enabled: impactEnabled,
+      eyebrow: impactEyebrow,
+      title: impactTitle,
+      description: impactDescription,
+      href: impactHref,
+      linkLabel: impactLinkLabel,
+    });
+    
     if (editId) {
-      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm });
+      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig });
     } else {
-      createProduct.mutate({ title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm });
+      createProduct.mutate({ title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig });
     }
   };
 
@@ -165,6 +190,28 @@ export default function AdminDashboard() {
     setImageUrl(p.imageUrl || "");
     setDescription(p.description || "");
     setDescriptionHtml(p.descriptionHtml || "");
+    
+    try {
+      if (p.impactConfig) {
+        const config = JSON.parse(p.impactConfig);
+        setImpactEnabled(config.enabled ?? true);
+        setImpactEyebrow(config.eyebrow || "Il tuo acquisto sostiene");
+        setImpactTitle(config.title || "Progetti e iniziative A-Tono ETS");
+        setImpactDescription(config.description || "Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.");
+        setImpactHref(config.href || "https://ets.a-tono.com/progetti.html");
+        setImpactLinkLabel(config.linkLabel || "Scopri il programma sostenuto");
+      } else {
+        setImpactEnabled(true);
+        setImpactEyebrow("Il tuo acquisto sostiene");
+        setImpactTitle("Progetti e iniziative A-Tono ETS");
+        setImpactDescription("Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.");
+        setImpactHref("https://ets.a-tono.com/progetti.html");
+        setImpactLinkLabel("Scopri il programma sostenuto");
+      }
+    } catch (e) {
+      // Ignore
+    }
+    
     if (fileInputRef.current) fileInputRef.current.value = "";
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -318,6 +365,41 @@ export default function AdminDashboard() {
                         </div>
                       )}
                     </div>
+                  </div>
+                  
+                  <div className="p-4 border rounded-lg bg-slate-50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm text-slate-700">Banner Impatto (Solidale)</h4>
+                      <label className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={impactEnabled} onChange={e => setImpactEnabled(e.target.checked)} className="rounded text-blue-600 focus:ring-blue-500" />
+                        Mostra banner su questo prodotto
+                      </label>
+                    </div>
+                    
+                    {impactEnabled && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700">Occhiello (Eyebrow)</label>
+                          <Input value={impactEyebrow} onChange={e => setImpactEyebrow(e.target.value)} placeholder="Il tuo acquisto sostiene" />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700">Titolo</label>
+                          <Input value={impactTitle} onChange={e => setImpactTitle(e.target.value)} placeholder="Progetti e iniziative A-Tono ETS" />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="mb-1 block text-xs font-medium text-slate-700">Descrizione</label>
+                          <Textarea value={impactDescription} onChange={e => setImpactDescription(e.target.value)} rows={2} />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700">Testo del Link</label>
+                          <Input value={impactLinkLabel} onChange={e => setImpactLinkLabel(e.target.value)} placeholder="Scopri il programma sostenuto" />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-700">URL del Link</label>
+                          <Input value={impactHref} onChange={e => setImpactHref(e.target.value)} placeholder="https://ets.a-tono.com/progetti.html" />
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <Button type="submit" disabled={createProduct.isPending || updateProduct.isPending} className="mt-2 w-full sm:w-auto self-start">
                     {createProduct.isPending || updateProduct.isPending ? "Salvataggio..." : (editId ? "Aggiorna Prodotto" : "Salva Prodotto")}

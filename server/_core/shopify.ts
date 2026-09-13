@@ -34,6 +34,7 @@ function mapProduct(p: any): Product {
     lengthCm: p.lengthCm,
     widthCm: p.widthCm,
     heightCm: p.heightCm,
+    impactConfig: p.impactConfig,
   };
 }
 

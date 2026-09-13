@@ -1,6 +1,6 @@
 import { useCart } from "@/contexts/CartContext";
 import { formatMoney } from "@/lib/format";
-import { getProductImpact } from "@/lib/productImpact";
+
 import { trpc } from "@/lib/trpc";
 import { AlertCircle, ArrowLeft, ArrowUpRight, Loader2, ShoppingBag } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -29,7 +29,39 @@ export default function ProductDetail() {
     return product.variants.find(variant => Object.entries(selectedOptions).every(([name, value]) => variant.selectedOptions.some(option => option.name === name && option.value === value))) ?? product.variants[0];
   }, [product, selectedOptions]);
 
-  const impact = useMemo(() => getProductImpact(handle), [handle]);
+  const impact = useMemo(() => {
+    if (!product?.impactConfig) {
+      // Fallback
+      return {
+        enabled: true,
+        eyebrow: "Il tuo acquisto sostiene",
+        title: "Progetti e iniziative A-Tono ETS",
+        description: "Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.",
+        href: "https://ets.a-tono.com/progetti.html",
+        linkLabel: "Scopri il programma sostenuto"
+      };
+    }
+    try {
+      const config = JSON.parse(product.impactConfig);
+      // Ensure missing values fall back properly just in case
+      if (config.enabled === undefined) config.enabled = true;
+      if (!config.eyebrow) config.eyebrow = "Il tuo acquisto sostiene";
+      if (!config.title) config.title = "Progetti e iniziative A-Tono ETS";
+      if (!config.description) config.description = "Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.";
+      if (!config.href) config.href = "https://ets.a-tono.com/progetti.html";
+      if (!config.linkLabel) config.linkLabel = "Scopri il programma sostenuto";
+      return config;
+    } catch {
+      return {
+        enabled: true,
+        eyebrow: "Il tuo acquisto sostiene",
+        title: "Progetti e iniziative A-Tono ETS",
+        description: "Il ricavato del merchandising contribuisce a sostenere il programma di progetti e iniziative dell’ETS rivolto alle persone e ai territori.",
+        href: "https://ets.a-tono.com/progetti.html",
+        linkLabel: "Scopri il programma sostenuto"
+      };
+    }
+  }, [product]);
 
   const addToCart = async () => {
     if (!selectedVariant?.availableForSale) return;
@@ -74,8 +106,12 @@ export default function ProductDetail() {
               {loading ? <Loader2 className="animate-spin" size={17} aria-hidden="true" /> : <ShoppingBag size={17} aria-hidden="true" />}
               {selectedVariant?.availableForSale ? "Aggiungi al carrello" : "Non disponibile"}
             </button>
-            <div className="impact-note mt-8"><span className="impact-mark">+</span><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#52718b]">{impact.eyebrow}</p><p className="mt-2 font-display text-xl font-light text-[#2b3e52]">{impact.title}</p><p className="mt-2">{impact.description}</p></div></div>
-            <a href={impact.href} target="_blank" rel="noreferrer" className="mt-6 inline-flex w-fit items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#456987] transition-colors hover:text-[#7a9cbf]">{impact.linkLabel} <ArrowUpRight size={15} aria-hidden="true" /></a>
+            {impact.enabled && (
+              <>
+                <div className="impact-note mt-8"><span className="impact-mark">+</span><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#52718b]">{impact.eyebrow}</p><p className="mt-2 font-display text-xl font-light text-[#2b3e52]">{impact.title}</p><p className="mt-2">{impact.description}</p></div></div>
+                <a href={impact.href} target="_blank" rel="noreferrer" className="mt-6 inline-flex w-fit items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-[#456987] transition-colors hover:text-[#7a9cbf]">{impact.linkLabel} <ArrowUpRight size={15} aria-hidden="true" /></a>
+              </>
+            )}
           </div>
         </div>
       </section>

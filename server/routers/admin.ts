@@ -85,6 +85,7 @@ export const adminRouter = router({
       lengthCm: z.number().optional().default(0),
       widthCm: z.number().optional().default(0),
       heightCm: z.number().optional().default(0),
+      impactConfig: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -105,6 +106,7 @@ export const adminRouter = router({
         lengthCm: input.lengthCm,
         widthCm: input.widthCm,
         heightCm: input.heightCm,
+        impactConfig: input.impactConfig || null,
       });
       
       return { id, handle };
@@ -122,6 +124,7 @@ export const adminRouter = router({
       lengthCm: z.number().optional(),
       widthCm: z.number().optional(),
       heightCm: z.number().optional(),
+      impactConfig: z.string().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
@@ -138,6 +141,7 @@ export const adminRouter = router({
           ...(input.lengthCm !== undefined ? { lengthCm: input.lengthCm } : {}),
           ...(input.widthCm !== undefined ? { widthCm: input.widthCm } : {}),
           ...(input.heightCm !== undefined ? { heightCm: input.heightCm } : {}),
+          ...(input.impactConfig !== undefined ? { impactConfig: input.impactConfig || null } : {}),
         })
         .where(eq(products.id, input.id));
       

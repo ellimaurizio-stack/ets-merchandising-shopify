@@ -62,6 +62,7 @@ export type Product = {
   /** Available option dimensions (e.g. Size, Color) for the variant picker. */
   options: ProductOption[];
   variants: ProductVariant[];
+  impactConfig?: string | null;
   
   weightGrams?: number;
   lengthCm?: number;

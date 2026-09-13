@@ -301,6 +301,54 @@ export default function Checkout() {
         currentLegalY += 6;
       }
 
+      const drawRichText = (doc: any, text: string, startX: number, startY: number, maxWidth: number, lineHeight: number) => {
+        let x = startX;
+        let y = startY;
+        if (y > 270) { doc.addPage(); y = 20; }
+        const paragraphs = text.split('\n');
+        paragraphs.forEach(paragraph => {
+          if (paragraph.trim() === '') {
+            y += lineHeight;
+            return;
+          }
+          const tokens = paragraph.split(/(\*\*.*?\*\*|<b>.*?<\/b>)/g);
+          tokens.forEach(token => {
+            if (!token) return;
+            let isBold = false;
+            let printToken = token;
+            if (token.startsWith('**') && token.endsWith('**')) {
+              isBold = true;
+              printToken = token.slice(2, -2);
+            } else if (token.startsWith('<b>') && token.endsWith('</b>')) {
+              isBold = true;
+              printToken = token.slice(3, -4);
+            }
+            doc.setFont("helvetica", isBold ? "bold" : "normal");
+            const spaceWidth = doc.getTextWidth(" ");
+            const words = printToken.split(' ');
+            words.forEach((word, index) => {
+              const isLastWord = index === words.length - 1;
+              const wordWidth = doc.getTextWidth(word);
+              if (x + wordWidth > startX + maxWidth && x !== startX) {
+                x = startX;
+                y += lineHeight;
+                if (y > 270) { doc.addPage(); y = 20; }
+              }
+              if (word) {
+                doc.text(word, x, y);
+                x += wordWidth;
+              }
+              if (!isLastWord) {
+                x += spaceWidth;
+              }
+            });
+          });
+          x = startX;
+          y += lineHeight + 2;
+        });
+        return y;
+      };
+
       // Handle dynamic legalBlocks
       if (receiptConfig.legalBlocks && Array.isArray(receiptConfig.legalBlocks)) {
         receiptConfig.legalBlocks.forEach((block: any) => {
@@ -319,19 +367,8 @@ export default function Checkout() {
           if (block.text) {
             doc.setFont("helvetica", "normal");
             doc.setFontSize(9);
-            // Splitting by \n first to preserve explicit newlines made by user,
-            // then by width to wrap long lines
-            const lines = block.text.split('\n');
-            lines.forEach((paragraph: string) => {
-              const splitText = doc.splitTextToSize(paragraph, 180);
-              splitText.forEach((line: string) => {
-                if (currentLegalY > 270) { doc.addPage(); currentLegalY = 20; }
-                doc.text(line, 14, currentLegalY);
-                currentLegalY += 4;
-              });
-              currentLegalY += 2; // Extra space between explicit paragraphs
-            });
-            currentLegalY += 4; // Space between blocks
+            currentLegalY = drawRichText(doc, block.text, 14, currentLegalY, 180, 4);
+            currentLegalY += 2; // Space between blocks
           }
         });
       }

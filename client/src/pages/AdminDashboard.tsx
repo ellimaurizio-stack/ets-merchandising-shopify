@@ -1465,7 +1465,7 @@ function ReceiptSettingsSection() {
                 newBlocks[index].text = e.target.value;
                 handleChange("legalBlocks", newBlocks);
               }} 
-              placeholder="Testo del paragrafo..." 
+              placeholder="Testo del paragrafo. Usa **testo** oppure <b>testo</b> per il grassetto." 
               rows={3}
             />
             <Button 

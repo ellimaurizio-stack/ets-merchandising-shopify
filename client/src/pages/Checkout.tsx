@@ -448,7 +448,7 @@ export default function Checkout() {
         <ArrowLeft size={16} className="mr-2" /> Torna al negozio
       </Link>
       
-      <div className="grid gap-12 lg:grid-cols-[1fr_400px]">
+      <div className="flex flex-col-reverse gap-8 lg:grid lg:gap-12 lg:grid-cols-[1fr_400px]">
         {/* Modulo di Checkout */}
         <div>
           <h1 className="font-display text-3xl font-light text-[#2b3e52] mb-8">Checkout</h1>

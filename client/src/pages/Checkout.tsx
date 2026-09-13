@@ -545,9 +545,6 @@ export default function Checkout() {
                 <button type="submit" disabled={provider === "nessuno" || isGeneratingPdf} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
                   {isGeneratingPdf ? "Registrazione ordine..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Conferma Ordine e Scarica PDF</> : <><CreditCard className="mr-2" size={20} /> Paga €{totalWithShipping}</>)}
                 </button>
-                <button type="button" onClick={() => openCart()} className="action-pill w-full justify-center text-lg bg-white text-[#2b3e52] border border-[#2b3e52] hover:bg-gray-50">
-                  Modifica Ordine
-                </button>
               </div>
             </form>
           </div>
@@ -586,10 +583,14 @@ export default function Checkout() {
               <span className="text-gray-600">Spedizione</span>
               <span className="font-medium">€{calculatedShippingCost.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 mt-2">
+            <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200 mt-2 mb-4">
               <span>Totale</span>
               <span>€{totalWithShipping}</span>
             </div>
+            
+            <button type="button" onClick={() => openCart()} className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md border-2 border-[#2b3e52] text-[#2b3e52] font-semibold hover:bg-slate-100 transition-colors mt-4">
+              Modifica Ordine
+            </button>
           </div>
         </div>
       </div>

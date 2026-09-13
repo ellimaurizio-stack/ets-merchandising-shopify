@@ -13,8 +13,6 @@ export default function Checkout() {
   
   const createOrder = trpc.commerce.createOrder.useMutation();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [receiptBase64, setReceiptBase64] = useState<string | undefined>();
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -32,6 +30,16 @@ export default function Checkout() {
         customFieldsConfig = JSON.parse(settings.checkoutFields);
       } catch(e) {}
     }
+  }
+
+  const nameField = customFieldsConfig.find(f => f.validationType === "name");
+  const surnameField = customFieldsConfig.find(f => f.validationType === "surname");
+  const emailField = customFieldsConfig.find(f => f.validationType === "email");
+  
+  const name = ((nameField ? (customValues[nameField.label] || "") : "") + " " + (surnameField ? (customValues[surnameField.label] || "") : "")).trim() || "Cliente Anonimo";
+  const email = emailField ? (customValues[emailField.label] || "") : "no-email@example.com";
+
+  if (settings) {
     
     if (settings.shippingConfig && cart && cart.items.length > 0) {
       try {
@@ -480,14 +488,7 @@ export default function Checkout() {
             )}
             
             <form className="space-y-4" onSubmit={e => { e.preventDefault(); generatePdf(); }}>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="tu@email.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nome e Cognome</label>
-                <input type="text" required value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2" placeholder="Mario Rossi" />
-              </div>
+
               
               {customFieldsConfig.map(field => (
                 <div key={field.id}>
@@ -495,7 +496,7 @@ export default function Checkout() {
                     {field.label} {field.required && <span className="text-red-500">*</span>}
                   </label>
                   <input 
-                    type="text" 
+                    type={field.validationType === "email" ? "email" : "text"} 
                     required={field.required} 
                     value={customValues[field.label] || ""} 
                     onChange={e => setCustomValues({...customValues, [field.label]: e.target.value})} 

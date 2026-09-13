@@ -1039,7 +1039,7 @@ function CheckoutFieldsSection() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4">
         <h3 className="text-lg font-semibold">Aggiungi nuovo campo al Checkout</h3>
-        <p className="text-sm text-gray-600">Nota: Nome ed Email sono sempre richiesti per impostazione predefinita.</p>
+        <p className="text-sm text-gray-600">Attenzione: Assicurati di avere almeno un campo con regola 'Email' e campi per 'Nome' e 'Cognome' per permettere il salvataggio corretto degli ordini.</p>
         <div className="flex flex-wrap gap-4 items-end bg-white p-4 rounded border">
           <div className="flex-1 min-w-[200px]">
             <label className="text-xs font-medium mb-1 block">Nome Campo (es. Telefono, Indirizzo di spedizione, Partita IVA)</label>
@@ -1056,7 +1056,7 @@ function CheckoutFieldsSection() {
       <div>
         <h3 className="mb-4 text-lg font-semibold">Campi Aggiuntivi Attuali</h3>
         {fields.length === 0 ? (
-          <p className="text-sm text-gray-500">Nessun campo aggiuntivo configurato. Verranno chiesti solo Nome ed Email.</p>
+          <p className="text-sm text-red-500 font-bold">Nessun campo configurato. Attenzione: il form di checkout sarà vuoto e gli ordini potrebbero fallire! Aggiungi subito i campi per Nome, Cognome ed Email.</p>
         ) : (
           <div className="flex flex-col gap-3">
             {fields.map((f, i) => (
@@ -1087,6 +1087,9 @@ function CheckoutFieldsSection() {
                       }}
                     >
                       <option value="none">Testo Libero (Alfanumerico)</option>
+                      <option value="name">Nome (di battesimo)</option>
+                      <option value="surname">Cognome</option>
+                      <option value="email">Email</option>
                       <option value="cap">CAP (Esattamente 5 cifre)</option>
                     </select>
                   </div>

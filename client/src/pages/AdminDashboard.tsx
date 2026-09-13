@@ -4,9 +4,9 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck } from "lucide-react";
+import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List } from "lucide-react";
 
-type Tab = "general" | "products" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
+type Tab = "general" | "products" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -180,6 +180,7 @@ export default function AdminDashboard() {
   };
 
   const handleEditClick = (p: any) => {
+    setActiveTab("products");
     setEditId(p.id);
     setTitle(p.title);
     setPriceAmount(p.priceAmount);
@@ -252,7 +253,10 @@ export default function AdminDashboard() {
             <LayoutTemplate size={18} /> Impostazioni Shop
           </button>
           <button onClick={() => setActiveTab("products")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "products" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
-            <Package size={18} /> Prodotti
+            <Package size={18} /> Aggiungi Prodotto
+          </button>
+          <button onClick={() => setActiveTab("catalog")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "catalog" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <List size={18} /> Catalogo
           </button>
           <button onClick={() => setActiveTab("orders")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "orders" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <ShoppingBag size={18} /> Ordini
@@ -406,9 +410,13 @@ export default function AdminDashboard() {
                   </Button>
                 </form>
               </div>
+            </div>
+          )}
 
+          {activeTab === "catalog" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Catalogo Attuale</h2>
               <div>
-                <h3 className="mb-4 text-xl font-semibold">Catalogo Attuale</h3>
                 {isLoadingProducts ? (
                   <p className="text-slate-500">Caricamento prodotti...</p>
                 ) : (

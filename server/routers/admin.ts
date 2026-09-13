@@ -175,6 +175,7 @@ export const adminRouter = router({
       if (err?.message?.includes("Unknown column") || err?.message?.includes("Failed query")) {
         try {
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN cartConfig longtext`);
           const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
           if (result.length > 0) return result[0];
         } catch (e) {
@@ -197,6 +198,7 @@ export const adminRouter = router({
       shopTitle: z.string().optional(),
       shopDescription: z.string().optional(),
       receiptConfig: z.string().optional(),
+      cartConfig: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
@@ -213,6 +215,7 @@ export const adminRouter = router({
       } catch (err: any) {
         try {
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN cartConfig longtext`);
           const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
           if (existing.length > 0) {
             await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));

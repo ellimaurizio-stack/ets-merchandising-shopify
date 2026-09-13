@@ -107,4 +107,5 @@ export const storeSettings = mysqlTable("store_settings", {
   shopTitle: text("shopTitle"),
   shopDescription: text("shopDescription"),
   receiptConfig: longtext("receiptConfig"), // JSON string of PDF receipt settings
+  cartConfig: longtext("cartConfig"), // JSON string of cart UI settings
 });

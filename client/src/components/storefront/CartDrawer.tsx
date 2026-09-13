@@ -1,4 +1,5 @@
 import { useCart } from "@/contexts/CartContext";
+import { trpc } from "@/lib/trpc";
 import { formatMoney } from "@/lib/format";
 import {
   Sheet,
@@ -22,6 +23,19 @@ export function CartDrawer() {
     removeItem,
     proceedToCheckout,
   } = useCart();
+
+  const { data: settings } = trpc.commerce.settings.useQuery();
+  
+  let cartConfig = {
+    buttonText: "Vai al Check out sicuro",
+    disclaimerText: "Il pagamento è gestito in modo sicuro. Nessun importo verrà addebitato ora."
+  };
+
+  if (settings?.cartConfig) {
+    try {
+      cartConfig = { ...cartConfig, ...JSON.parse(settings.cartConfig) };
+    } catch (e) {}
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={open => (open ? openCart() : closeCart())}>
@@ -83,9 +97,9 @@ export function CartDrawer() {
           </div>
           <button type="button" className="action-pill w-full justify-center disabled:cursor-not-allowed disabled:opacity-50" onClick={proceedToCheckout} disabled={!itemCount || loading}>
             {loading ? <Loader2 className="animate-spin" size={17} aria-hidden="true" /> : <ShoppingBag size={17} aria-hidden="true" />}
-            Vai al checkout sicuro
+            {cartConfig.buttonText}
           </button>
-          <p className="mt-3 text-center text-xs leading-5 text-[#7890a6]">Il pagamento è gestito in modo sicuro. Nessun importo verrà addebitato ora.</p>
+          <p className="mt-3 text-center text-xs leading-5 text-[#7890a6] whitespace-pre-line">{cartConfig.disclaimerText}</p>
         </SheetFooter>
       </SheetContent>
     </Sheet>

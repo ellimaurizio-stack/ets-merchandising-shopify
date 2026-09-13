@@ -6,7 +6,7 @@ import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
 import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List, FileText } from "lucide-react";
 
-type Tab = "general" | "products" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "receipt" | "privacy" | "admins";
+type Tab = "general" | "products" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "cart" | "receipt" | "privacy" | "admins";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -270,6 +270,9 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab("checkout")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "checkout" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <LayoutTemplate size={18} /> Campi Checkout
           </button>
+          <button onClick={() => setActiveTab("cart")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "cart" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <ShoppingBag size={18} /> Testi Carrello
+          </button>
           <button onClick={() => setActiveTab("receipt")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "receipt" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <FileText size={18} /> Ricevuta PDF
           </button>
@@ -497,6 +500,15 @@ export default function AdminDashboard() {
               <h2 className="mb-6 text-3xl font-bold tracking-tight">Personalizzazione Checkout</h2>
               <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
                 <CheckoutFieldsSection />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "cart" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Testi Carrello</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <CartSettingsSection />
               </div>
             </div>
           )}

@@ -500,6 +500,13 @@ export default function Checkout() {
                     value={customValues[field.label] || ""} 
                     onChange={e => setCustomValues({...customValues, [field.label]: e.target.value})} 
                     className="w-full rounded-md border border-gray-300 px-3 py-2" 
+                    {...(field.validationType === "cap" ? { 
+                      pattern: "\\d{5}", 
+                      maxLength: 5, 
+                      minLength: 5,
+                      title: "Inserisci esattamente 5 cifre numeriche",
+                      inputMode: "numeric"
+                    } : {})}
                   />
                 </div>
               ))}

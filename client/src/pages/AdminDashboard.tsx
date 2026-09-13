@@ -980,7 +980,7 @@ function CheckoutFieldsSection() {
   const utils = trpc.useUtils();
   const { data: settings, isLoading } = trpc.admin.getSettings.useQuery();
   
-  const [fields, setFields] = useState<Array<{ id: string, label: string, required: boolean }>>([]);
+  const [fields, setFields] = useState<Array<{ id: string, label: string, required: boolean, validationType?: string }>>([]);
   const [newLabel, setNewLabel] = useState("");
   const [newRequired, setNewRequired] = useState(false);
 
@@ -1058,18 +1058,58 @@ function CheckoutFieldsSection() {
         {fields.length === 0 ? (
           <p className="text-sm text-gray-500">Nessun campo aggiuntivo configurato. Verranno chiesti solo Nome ed Email.</p>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {fields.map((f, i) => (
-              <div key={f.id} className="flex justify-between items-center p-3 border rounded bg-white">
-                <div>
-                  <span className="font-medium">{f.label}</span>
-                  {f.required ? <span className="ml-2 text-xs text-red-600 font-bold">Obbligatorio</span> : <span className="ml-2 text-xs text-gray-500">Opzionale</span>}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => toggleRequired(f.id)}>
-                    {f.required ? "Rendi Opzionale" : "Rendi Obbligatorio"}
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => removeField(f.id)}>Elimina</Button>
+              <div key={f.id} className="flex flex-col gap-3 p-4 border rounded bg-white shadow-sm">
+                <div className="flex flex-wrap gap-4 items-center">
+                  <div className="flex-1 min-w-[200px]">
+                    <label className="text-xs text-slate-500 mb-1 block">Nome Campo</label>
+                    <Input 
+                      value={f.label} 
+                      onChange={(e) => {
+                        const newFields = [...fields];
+                        newFields[i].label = e.target.value;
+                        setFields(newFields);
+                      }} 
+                      onBlur={() => saveFields(fields)}
+                    />
+                  </div>
+                  
+                  <div className="w-[200px]">
+                    <label className="text-xs text-slate-500 mb-1 block">Regola di Validazione</label>
+                    <select 
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      value={f.validationType || "none"}
+                      onChange={(e) => {
+                        const newFields = [...fields];
+                        newFields[i].validationType = e.target.value;
+                        saveFields(newFields);
+                      }}
+                    >
+                      <option value="none">Testo Libero (Alfanumerico)</option>
+                      <option value="cap">CAP (Esattamente 5 cifre)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-5">
+                    <input 
+                      type="checkbox" 
+                      checked={f.required} 
+                      onChange={(e) => {
+                        const newFields = [...fields];
+                        newFields[i].required = e.target.checked;
+                        saveFields(newFields);
+                      }}
+                      id={`req-${f.id}`}
+                    />
+                    <label htmlFor={`req-${f.id}`} className="text-sm cursor-pointer">Obbligatorio</label>
+                  </div>
+
+                  <div className="pt-5 pl-4 ml-auto border-l">
+                    <Button variant="ghost" className="text-red-500" size="sm" onClick={() => removeField(f.id)}>
+                      Elimina
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

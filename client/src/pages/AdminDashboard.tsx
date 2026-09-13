@@ -1262,7 +1262,11 @@ function ReceiptSettingsSection() {
     tableColor: "#2b3e52",
     qrCodeUrl: "",
     logoWidth: 40,
-    logoHeight: 20
+    logoHeight: 20,
+    qrCodeText: "Scopri di più sui nostri progetti inquadrando il QR Code!",
+    contactsText: "Email: info@a-tono.com | Tel: +39 012 3456789",
+    footerText: "A-Tono ETS - Tutti i diritti riservati",
+    legalNotes: "Associazione ETS iscritta al RUNTS - C.F. 12345678901"
   });
   
   const utils = trpc.useUtils();
@@ -1409,6 +1413,43 @@ function ReceiptSettingsSection() {
           placeholder="Es. https://a-tono.org" 
         />
         <p className="text-xs text-slate-500 mt-1">Se inserito, verrà stampato in fondo al PDF.</p>
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Testo di accompagnamento al QR Code</label>
+        <Textarea 
+          value={config.qrCodeText} 
+          onChange={(e) => handleChange("qrCodeText", e.target.value)} 
+          placeholder="Scopri di più sui nostri progetti inquadrando il QR Code!" 
+          rows={2} 
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Contatti (Email, Telefono...)</label>
+        <Input 
+          value={config.contactsText} 
+          onChange={(e) => handleChange("contactsText", e.target.value)} 
+          placeholder="Email: info@a-tono.com | Tel: +39 012 3456789" 
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Testo a Piè di Pagina (Footer)</label>
+        <Input 
+          value={config.footerText} 
+          onChange={(e) => handleChange("footerText", e.target.value)} 
+          placeholder="A-Tono ETS - Tutti i diritti riservati" 
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Note Legali</label>
+        <Input 
+          value={config.legalNotes} 
+          onChange={(e) => handleChange("legalNotes", e.target.value)} 
+          placeholder="Associazione ETS iscritta al RUNTS - C.F. 12345678901" 
+        />
       </div>
 
       <div className="flex justify-start gap-4 mt-4">

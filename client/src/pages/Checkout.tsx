@@ -131,7 +131,11 @@ export default function Checkout() {
         bgImageUrl: "",
         qrCodeUrl: "",
         logoWidth: 40,
-        logoHeight: 20
+        logoHeight: 20,
+        qrCodeText: "Scopri di più sui nostri progetti inquadrando il QR Code!",
+        contactsText: "Email: info@a-tono.com | Tel: +39 012 3456789",
+        footerText: "A-Tono ETS - Tutti i diritti riservati",
+        legalNotes: "Associazione ETS iscritta al RUNTS - C.F. 12345678901"
       };
       
       if (settings?.receiptConfig) {
@@ -247,8 +251,15 @@ export default function Checkout() {
         }
       });
 
-      const finalY = (doc as any).lastAutoTable.finalY || 100;
+      let finalY = (doc as any).lastAutoTable.finalY || 100;
+      
+      if (finalY > 230) {
+        doc.addPage();
+        finalY = 20;
+      }
+
       doc.setFontSize(14);
+      doc.setTextColor(0);
       doc.text(`Totale Ordine: €${totalWithShipping}`, 14, finalY + 15);
 
       doc.setFontSize(10);
@@ -257,14 +268,39 @@ export default function Checkout() {
       const splitThankYou = doc.splitTextToSize(receiptConfig.thankYouText || "Grazie per aver sostenuto A-Tono ETS!", 120);
       doc.text(splitThankYou, 14, finalY + 30);
 
+      if (receiptConfig.qrCodeText) {
+        doc.setFontSize(9);
+        const splitQrText = doc.splitTextToSize(receiptConfig.qrCodeText, 120);
+        doc.text(splitQrText, 14, finalY + 45);
+      }
+
       if (receiptConfig.qrCodeUrl) {
         try {
           const qrcode = await import("qrcode");
           const qrDataUri = await qrcode.toDataURL(receiptConfig.qrCodeUrl, { width: 100, margin: 1 });
-          doc.addImage(qrDataUri, 'PNG', 150, finalY + 20, 40, 40);
+          doc.addImage(qrDataUri, 'PNG', 150, finalY + 20, 35, 35);
         } catch (e) {
           console.error("Errore generazione QR Code:", e);
         }
+      }
+
+      // Footer - Fixed at the bottom of the last page
+      const pageHeight = doc.internal.pageSize.getHeight();
+      
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      
+      if (receiptConfig.contactsText) {
+        doc.text(receiptConfig.contactsText, 105, pageHeight - 20, { align: "center" });
+      }
+      
+      if (receiptConfig.footerText) {
+        doc.text(receiptConfig.footerText, 105, pageHeight - 14, { align: "center" });
+      }
+      
+      if (receiptConfig.legalNotes) {
+        doc.setFontSize(7);
+        doc.text(receiptConfig.legalNotes, 105, pageHeight - 8, { align: "center" });
       }
 
       doc.save(`Ordine_${name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);

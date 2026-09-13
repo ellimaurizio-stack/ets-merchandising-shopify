@@ -253,7 +253,7 @@ export default function Checkout() {
 
       let finalY = (doc as any).lastAutoTable.finalY || 100;
       
-      if (finalY > 230) {
+      if (finalY > 180) {
         doc.addPage();
         finalY = 20;
       }
@@ -284,6 +284,12 @@ export default function Checkout() {
         }
       }
 
+      if (receiptConfig.legalNotes) {
+        doc.setFontSize(9);
+        const splitLegalNotes = doc.splitTextToSize(receiptConfig.legalNotes, 160);
+        doc.text(splitLegalNotes, 196, finalY + 70, { align: "right" });
+      }
+
       // Footer - Fixed at the bottom of the last page
       const pageHeight = doc.internal.pageSize.getHeight();
       
@@ -296,11 +302,6 @@ export default function Checkout() {
       
       if (receiptConfig.footerText) {
         doc.text(receiptConfig.footerText, 105, pageHeight - 14, { align: "center" });
-      }
-      
-      if (receiptConfig.legalNotes) {
-        doc.setFontSize(7);
-        doc.text(receiptConfig.legalNotes, 105, pageHeight - 8, { align: "center" });
       }
 
       doc.save(`Ordine_${name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);

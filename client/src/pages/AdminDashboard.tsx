@@ -1444,11 +1444,12 @@ function ReceiptSettingsSection() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Note Legali</label>
-        <Input 
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Note Legali (Termini, Condizioni...)</label>
+        <Textarea 
           value={config.legalNotes} 
           onChange={(e) => handleChange("legalNotes", e.target.value)} 
-          placeholder="Associazione ETS iscritta al RUNTS - C.F. 12345678901" 
+          placeholder="Es: I resi sono accettati entro 14 giorni. La spedizione..." 
+          rows={3}
         />
       </div>
 

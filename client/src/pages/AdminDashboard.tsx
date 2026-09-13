@@ -4,9 +4,9 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List } from "lucide-react";
+import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List, FileText } from "lucide-react";
 
-type Tab = "general" | "products" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "privacy" | "admins";
+type Tab = "general" | "products" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "receipt" | "privacy" | "admins";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -270,6 +270,9 @@ export default function AdminDashboard() {
           <button onClick={() => setActiveTab("checkout")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "checkout" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <LayoutTemplate size={18} /> Campi Checkout
           </button>
+          <button onClick={() => setActiveTab("receipt")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "receipt" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
+            <FileText size={18} /> Ricevuta PDF
+          </button>
           <button onClick={() => setActiveTab("privacy")} className={`flex items-center w-full gap-3 px-4 py-3 rounded-lg transition-colors text-sm font-medium ${activeTab === "privacy" ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`}>
             <ShieldCheck size={18} /> Privacy & Policy
           </button>
@@ -494,6 +497,15 @@ export default function AdminDashboard() {
               <h2 className="mb-6 text-3xl font-bold tracking-tight">Personalizzazione Checkout</h2>
               <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
                 <CheckoutFieldsSection />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "receipt" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Configurazione Ricevuta PDF</h2>
+              <div className="rounded-xl bg-white p-6 shadow-sm border border-slate-200">
+                <ReceiptSettingsSection />
               </div>
             </div>
           )}
@@ -1236,6 +1248,131 @@ function ShopSettingsSection() {
       <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description })} disabled={updateSettings.isPending}>
         {updateSettings.isPending ? "Salvataggio in corso..." : "Salva Testi"}
       </Button>
+    </div>
+  );
+}
+
+function ReceiptSettingsSection() {
+  const [config, setConfig] = useState({
+    logoUrl: "",
+    bgImageUrl: "",
+    title: "Riepilogo Ordine",
+    introText: "",
+    thankYouText: "Grazie per aver sostenuto A-Tono ETS!",
+    tableColor: "#2b3e52",
+    qrCodeUrl: ""
+  });
+  
+  const utils = trpc.useUtils();
+  
+  const { data: settings } = trpc.commerce.settings.useQuery(undefined, {
+    onSuccess: (data) => {
+      if (data?.receiptConfig) {
+        try {
+          setConfig({ ...config, ...JSON.parse(data.receiptConfig) });
+        } catch (e) {}
+      }
+    }
+  });
+
+  const updateSettings = trpc.admin.updateSettings.useMutation({
+    onSuccess: () => {
+      alert("Configurazione ricevuta PDF salvata!");
+      utils.commerce.settings.invalidate();
+    }
+  });
+
+  const handleSave = () => {
+    updateSettings.mutate({ receiptConfig: JSON.stringify(config) });
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <div className="flex flex-col gap-6 max-w-2xl">
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">URL Logo (Opzionale)</label>
+        <Input 
+          value={config.logoUrl} 
+          onChange={(e) => handleChange("logoUrl", e.target.value)} 
+          placeholder="Es. https://sito.com/logo.png" 
+        />
+        <p className="text-xs text-slate-500 mt-1">Apparirà in alto nella ricevuta.</p>
+        {config.logoUrl && <img src={config.logoUrl} alt="Preview Logo" className="mt-2 h-12 object-contain" />}
+      </div>
+      
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">URL Immagine di Sfondo (Filigrana - Opzionale)</label>
+        <Input 
+          value={config.bgImageUrl} 
+          onChange={(e) => handleChange("bgImageUrl", e.target.value)} 
+          placeholder="Es. https://sito.com/background.jpg" 
+        />
+        {config.bgImageUrl && <img src={config.bgImageUrl} alt="Preview Sfondo" className="mt-2 h-24 object-contain opacity-50" />}
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Titolo Documento</label>
+        <Input 
+          value={config.title} 
+          onChange={(e) => handleChange("title", e.target.value)} 
+          placeholder="Riepilogo Ordine" 
+        />
+      </div>
+      
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Testo Introduttivo (Opzionale)</label>
+        <Textarea 
+          value={config.introText} 
+          onChange={(e) => handleChange("introText", e.target.value)} 
+          placeholder="Inserisci un testo introduttivo..." 
+          rows={3} 
+        />
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Colore Principale Tabella Ordine</label>
+        <div className="flex items-center gap-3">
+          <input 
+            type="color" 
+            value={config.tableColor} 
+            onChange={(e) => handleChange("tableColor", e.target.value)} 
+            className="w-10 h-10 rounded cursor-pointer"
+          />
+          <Input 
+            value={config.tableColor} 
+            onChange={(e) => handleChange("tableColor", e.target.value)} 
+            className="w-32 uppercase" 
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Testo di Ringraziamento (Fondo Pagina)</label>
+        <Textarea 
+          value={config.thankYouText} 
+          onChange={(e) => handleChange("thankYouText", e.target.value)} 
+          rows={2} 
+        />
+      </div>
+      
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">URL per QR Code (Opzionale)</label>
+        <Input 
+          value={config.qrCodeUrl} 
+          onChange={(e) => handleChange("qrCodeUrl", e.target.value)} 
+          placeholder="Es. https://a-tono.org" 
+        />
+        <p className="text-xs text-slate-500 mt-1">Se inserito, verrà stampato in fondo al PDF.</p>
+      </div>
+
+      <div className="flex justify-start gap-4 mt-4">
+        <Button onClick={handleSave} disabled={updateSettings.isPending}>
+          {updateSettings.isPending ? "Salvataggio..." : "Salva Configurazione"}
+        </Button>
+      </div>
     </div>
   );
 }

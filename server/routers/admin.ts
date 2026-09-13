@@ -168,9 +168,21 @@ export const adminRouter = router({
   getSettings: publicProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) return null;
-    const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
-    if (result.length > 0) return result[0];
-    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "", checkoutFields: "", shippingConfig: "" };
+    try {
+      const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+      if (result.length > 0) return result[0];
+    } catch (err: any) {
+      if (err?.message?.includes("Unknown column") || err?.message?.includes("Failed query")) {
+        try {
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
+          const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+          if (result.length > 0) return result[0];
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+    return { paymentProvider: "nessuno", stripePublicKey: "", stripeSecretKey: "", paypalClientId: "", bankIban: "", checkoutFields: "", shippingConfig: "", receiptConfig: "" };
   }),
 
   updateSettings: publicProcedure
@@ -184,17 +196,32 @@ export const adminRouter = router({
       shippingConfig: z.string().optional(),
       shopTitle: z.string().optional(),
       shopDescription: z.string().optional(),
+      receiptConfig: z.string().optional(),
     }))
     .mutation(async ({ input }) => {
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       
-      const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
-      
-      if (existing.length > 0) {
-        await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));
-      } else {
-        await db.insert(storeSettings).values({ id: "default", paymentProvider: input.paymentProvider || "nessuno", ...input });
+      try {
+        const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+        
+        if (existing.length > 0) {
+          await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));
+        } else {
+          await db.insert(storeSettings).values({ id: "default", paymentProvider: input.paymentProvider || "nessuno", ...input });
+        }
+      } catch (err: any) {
+        try {
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
+          const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
+          if (existing.length > 0) {
+            await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));
+          } else {
+            await db.insert(storeSettings).values({ id: "default", paymentProvider: input.paymentProvider || "nessuno", ...input });
+          }
+        } catch (e) {
+          throw err;
+        }
       }
       return { success: true };
     }),

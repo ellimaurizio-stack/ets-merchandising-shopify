@@ -87,15 +87,28 @@ export default function Checkout() {
     reader.readAsDataURL(file);
   };
 
+  const getBase64ImageFromUrl = async (imageUrl: string) => {
+    try {
+      const res = await fetch(imageUrl);
+      const blob = await res.blob();
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.warn("Failed to load image for PDF:", e);
+      return null;
+    }
+  };
+
   const generatePdf = async () => {
     setIsGeneratingPdf(true);
     try {
-      // Create a summary string for the DB
       const itemsSummary = cart!.items.map(item => `${item.quantity}x ${item.productTitle} (${formatMoney(item.unitPrice)})`).join(", ");
-      
       const customFieldsJson = Object.keys(customValues).length > 0 ? JSON.stringify(customValues) : undefined;
 
-      // Save order to DB
       await createOrder.mutateAsync({
         customerName: name,
         customerEmail: email,
@@ -109,16 +122,58 @@ export default function Checkout() {
       const { jsPDF } = await import("jspdf");
       const autoTable = (await import("jspdf-autotable")).default;
 
+      let receiptConfig = {
+        title: "Riepilogo Ordine",
+        introText: "",
+        thankYouText: "Grazie per aver sostenuto A-Tono ETS!",
+        tableColor: "#2b3e52",
+        logoUrl: "",
+        bgImageUrl: "",
+        qrCodeUrl: ""
+      };
+      
+      if (settings?.receiptConfig) {
+        try {
+          receiptConfig = { ...receiptConfig, ...JSON.parse(settings.receiptConfig) };
+        } catch (e) {}
+      }
+
       const doc = new jsPDF();
+      
+      if (receiptConfig.bgImageUrl) {
+        const bgBase64 = await getBase64ImageFromUrl(receiptConfig.bgImageUrl);
+        if (bgBase64) {
+          doc.addImage(bgBase64, 'JPEG', 0, 0, 210, 297);
+        }
+      }
+
+      let startY = 20;
+      if (receiptConfig.logoUrl) {
+        const logoBase64 = await getBase64ImageFromUrl(receiptConfig.logoUrl);
+        if (logoBase64) {
+          doc.addImage(logoBase64, 'PNG', 14, 10, 40, 20); // Width 40, Height 20 approx
+          startY = 40;
+        }
+      }
+
       doc.setFontSize(22);
-      doc.text("Riepilogo Ordine", 14, 20);
+      doc.text(receiptConfig.title || "Riepilogo Ordine", 14, startY);
       
       doc.setFontSize(12);
-      doc.text(`Data: ${new Date().toLocaleDateString("it-IT")}`, 14, 30);
-      doc.text(`Cliente: ${name}`, 14, 38);
-      doc.text(`Email: ${email}`, 14, 46);
+      doc.text(`Data: ${new Date().toLocaleDateString("it-IT")}`, 14, startY + 10);
+      doc.text(`Cliente: ${name}`, 14, startY + 18);
+      doc.text(`Email: ${email}`, 14, startY + 26);
 
-      let currentY = 54;
+      let currentY = startY + 36;
+
+      if (receiptConfig.introText) {
+        doc.setFontSize(11);
+        const splitIntro = doc.splitTextToSize(receiptConfig.introText, 180);
+        doc.text(splitIntro, 14, currentY);
+        currentY += (splitIntro.length * 6) + 4;
+      }
+      
+      doc.setFontSize(12);
       customFieldsConfig.forEach(field => {
         const val = customValues[field.label] || "Non specificato";
         doc.text(`${field.label}: ${val}`, 14, currentY);
@@ -153,6 +208,7 @@ export default function Checkout() {
         startY: currentY,
         head: [['Prodotto/Servizio', 'Quantità', 'Prezzo Unitario', 'Totale']],
         body: tableData,
+        headStyles: { fillColor: receiptConfig.tableColor || "#2b3e52" }
       });
 
       const finalY = (doc as any).lastAutoTable.finalY || 100;
@@ -161,7 +217,19 @@ export default function Checkout() {
 
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text("Grazie per aver sostenuto A-Tono ETS!", 14, finalY + 30);
+      
+      const splitThankYou = doc.splitTextToSize(receiptConfig.thankYouText || "Grazie per aver sostenuto A-Tono ETS!", 120);
+      doc.text(splitThankYou, 14, finalY + 30);
+
+      if (receiptConfig.qrCodeUrl) {
+        try {
+          const qrcode = await import("qrcode");
+          const qrDataUri = await qrcode.toDataURL(receiptConfig.qrCodeUrl, { width: 100, margin: 1 });
+          doc.addImage(qrDataUri, 'PNG', 150, finalY + 20, 40, 40);
+        } catch (e) {
+          console.error("Errore generazione QR Code:", e);
+        }
+      }
 
       doc.save(`Ordine_${name.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
       

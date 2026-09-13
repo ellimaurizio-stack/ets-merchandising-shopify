@@ -134,6 +134,7 @@ export const commerceRouter = router({
       shippingConfig: storeSettings.shippingConfig,
       shopTitle: storeSettings.shopTitle,
       shopDescription: storeSettings.shopDescription,
+      receiptConfig: storeSettings.receiptConfig,
     }).from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
     if (result.length > 0) return result[0];
     return { paymentProvider: "nessuno" };

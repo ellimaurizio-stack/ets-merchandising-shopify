@@ -39,7 +39,7 @@ export default function AdminDashboard() {
 
   const utils = trpc.useUtils();
   
-  const { data: products, isLoading: isLoadingProducts } = trpc.admin.listProducts.useQuery(undefined, { enabled: isAdmin });
+  const { data: products, isLoading: isLoadingProducts, error: productsError } = trpc.admin.listProducts.useQuery(undefined, { enabled: isAdmin });
   const { data: admins, isLoading: isLoadingAdmins } = trpc.admin.listAdmins.useQuery(undefined, { enabled: isAdmin });
   
   const login = trpc.admin.login.useMutation({
@@ -419,6 +419,11 @@ export default function AdminDashboard() {
               <div>
                 {isLoadingProducts ? (
                   <p className="text-slate-500">Caricamento prodotti...</p>
+                ) : productsError ? (
+                  <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200">
+                    <p className="font-semibold mb-1">Errore nel caricamento del catalogo</p>
+                    <p className="text-sm">Assicurati di aver pubblicato le ultime modifiche su Render. (Errore: {productsError.message})</p>
+                  </div>
                 ) : (
                   <div className="flex flex-col gap-3">
                     {products?.map((p, index) => (
@@ -450,7 +455,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
-                    {products?.length === 0 && <p className="text-slate-500 p-4 border border-dashed rounded-xl text-center">Nessun prodotto presente nel catalogo.</p>}
+                    {(!products || products.length === 0) && <p className="text-slate-500 p-4 border border-dashed rounded-xl text-center">Nessun prodotto presente nel catalogo.</p>}
                   </div>
                 )}
               </div>

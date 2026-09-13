@@ -1206,12 +1206,12 @@ function ShopSettingsSection() {
   const [description, setDescription] = useState("Scegli un oggetto da portare con te ogni giorno. Il tuo acquisto contribuisce a sostenere il lavoro e le iniziative di A-Tono ETS.");
   const utils = trpc.useUtils();
   
-  const { data: settings } = trpc.commerce.settings.useQuery(undefined, {
-    onSuccess: (data) => {
-      if (data?.shopTitle) setTitle(data.shopTitle);
-      if (data?.shopDescription) setDescription(data.shopDescription);
-    }
-  });
+  const { data: settings } = trpc.commerce.settings.useQuery();
+
+  useEffect(() => {
+    if (settings?.shopTitle) setTitle(settings.shopTitle);
+    if (settings?.shopDescription) setDescription(settings.shopDescription);
+  }, [settings]);
 
   const updateSettings = trpc.admin.updateSettings.useMutation({
     onSuccess: () => {
@@ -1265,15 +1265,15 @@ function ReceiptSettingsSection() {
   
   const utils = trpc.useUtils();
   
-  const { data: settings } = trpc.commerce.settings.useQuery(undefined, {
-    onSuccess: (data) => {
-      if (data?.receiptConfig) {
-        try {
-          setConfig({ ...config, ...JSON.parse(data.receiptConfig) });
-        } catch (e) {}
-      }
+  const { data: settings } = trpc.commerce.settings.useQuery();
+
+  useEffect(() => {
+    if (settings?.receiptConfig) {
+      try {
+        setConfig(prev => ({ ...prev, ...JSON.parse(settings.receiptConfig) }));
+      } catch (e) {}
     }
-  });
+  }, [settings]);
 
   const updateSettings = trpc.admin.updateSettings.useMutation({
     onSuccess: () => {

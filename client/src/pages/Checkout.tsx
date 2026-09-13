@@ -195,6 +195,11 @@ export default function Checkout() {
       
       doc.setFontSize(12);
       customFieldsConfig.forEach(field => {
+        // Skip fields that are already printed at the top as Cliente / Email
+        if (nameField && field.id === nameField.id) return;
+        if (surnameField && field.id === surnameField.id) return;
+        if (emailField && field.id === emailField.id) return;
+
         const val = customValues[field.label] || "Non specificato";
         doc.text(`${field.label}: ${val}`, 14, currentY);
         currentY += 8;

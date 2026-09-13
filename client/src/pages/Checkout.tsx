@@ -1,13 +1,13 @@
 import { useCart } from "@/contexts/CartContext";
 import { formatMoney } from "@/lib/format";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, CreditCard, ShieldCheck, Download, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, ShieldCheck, Download, CheckCircle2, Upload } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { useState } from "react";
 
 export default function Checkout() {
   const [, params] = useRoute("/checkout/:cartId");
-  const { cart, loading, closeCart, clearCart } = useCart();
+  const { cart, loading, closeCart, clearCart, openCart } = useCart();
   const { data: settings } = trpc.commerce.settings.useQuery();
   const { data: disclaimers } = trpc.commerce.listPrivacyDisclaimers.useQuery();
   
@@ -473,10 +473,18 @@ export default function Checkout() {
                 <p className="mt-2"><strong>IBAN:</strong> {settings?.bankIban || "Non configurato"}</p>
                 <p className="mt-2">3. Il tuo ordine verrà elaborato alla ricezione del bonifico, e della relativa distinta.</p>
                 <p className="mt-2">4. Puoi inviare la distinta a <strong>info@ets.a-tono.com</strong> o caricarla direttamente in questa pagina cliccando qui sotto:</p>
-                <div className="mt-3 bg-white p-3 border rounded border-dashed">
-                  <label className="block font-medium mb-1 text-xs">Carica Distinta Bonifico (opzionale, formato PDF max 1MB)</label>
-                  <input type="file" accept="application/pdf" onChange={handleReceiptUpload} className="text-xs" />
-                  {receiptBase64 && <p className="text-xs text-green-600 mt-1">Distinta pronta per essere inviata insieme all'ordine.</p>}
+                <div className="mt-4 bg-white p-4 border rounded-xl border-dashed text-center flex flex-col items-center justify-center">
+                  <p className="font-medium mb-3 text-xs text-gray-600">Carica Distinta Bonifico (opzionale, formato PDF max 1MB)</p>
+                  <label htmlFor="receipt-upload" className="cursor-pointer inline-flex items-center justify-center rounded-md bg-white border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 w-full sm:w-auto">
+                    <Upload size={16} className="mr-2" />
+                    Seleziona file PDF
+                  </label>
+                  <input id="receipt-upload" type="file" accept="application/pdf" onChange={handleReceiptUpload} className="hidden" />
+                  {receiptBase64 && (
+                    <p className="text-xs text-green-600 mt-3 font-medium flex items-center">
+                      <CheckCircle2 size={14} className="mr-1" /> Distinta caricata con successo!
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -533,9 +541,12 @@ export default function Checkout() {
                 </div>
               )}
 
-              <div className="pt-4">
+              <div className="pt-4 flex flex-col gap-3">
                 <button type="submit" disabled={provider === "nessuno" || isGeneratingPdf} className="action-pill w-full justify-center text-lg bg-[#2b3e52] hover:bg-[#1a2633] disabled:opacity-50 disabled:cursor-not-allowed">
                   {isGeneratingPdf ? "Registrazione ordine..." : (provider === "bonifico" ? <><Download className="mr-2" size={20} /> Conferma Ordine e Scarica PDF</> : <><CreditCard className="mr-2" size={20} /> Paga €{totalWithShipping}</>)}
+                </button>
+                <button type="button" onClick={() => openCart()} className="action-pill w-full justify-center text-lg bg-white text-[#2b3e52] border border-[#2b3e52] hover:bg-gray-50">
+                  Modifica Ordine
                 </button>
               </div>
             </form>

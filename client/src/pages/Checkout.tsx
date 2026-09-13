@@ -118,8 +118,8 @@ export default function Checkout() {
       const customFieldsJson = Object.keys(customValues).length > 0 ? JSON.stringify(customValues) : undefined;
 
       await createOrder.mutateAsync({
-        customerName: name,
-        customerEmail: email,
+        customerName: name.trim() || "Cliente Anonimo",
+        customerEmail: email.trim() || "no-email@example.com",
         totalAmount: totalWithShipping,
         shippingCost: calculatedShippingCost.toFixed(2),
         itemsSummary,
@@ -403,7 +403,7 @@ export default function Checkout() {
       clearCart();
     } catch (error) {
       console.error("Errore generazione PDF", error);
-      alert("C'è stato un problema nella registrazione dell'ordine.");
+      alert(`C'è stato un problema nella registrazione dell'ordine: ${error instanceof Error ? error.message : (error as any)?.message || "Errore sconosciuto"}`);
     } finally {
       setIsGeneratingPdf(false);
     }

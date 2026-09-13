@@ -165,17 +165,40 @@ export const commerceRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-      await db.insert(orders).values({
-        customerName: input.customerName,
-        customerEmail: input.customerEmail,
-        totalAmount: input.totalAmount,
-        shippingCost: input.shippingCost,
-        itemsSummary: input.itemsSummary,
-        customFields: input.customFields,
-        paymentReceipt: input.paymentReceipt,
-        paymentDate: input.paymentReceipt ? new Date() : null,
-        status: input.paymentReceipt ? "paid" : "pending"
-      });
+      try {
+        await db.insert(orders).values({
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          totalAmount: input.totalAmount,
+          shippingCost: input.shippingCost,
+          itemsSummary: input.itemsSummary,
+          customFields: input.customFields,
+          paymentReceipt: input.paymentReceipt,
+          paymentDate: input.paymentReceipt ? new Date() : null,
+          status: input.paymentReceipt ? "paid" : "pending"
+        });
+      } catch (err: any) {
+        // Fallback: If column doesn't exist, try to add it and retry
+        if (err.message && err.message.includes("Unknown column 'paymentReceipt'")) {
+          const { sql } = await import("drizzle-orm");
+          try { await db.execute(sql`ALTER TABLE orders ADD COLUMN paymentReceipt longtext`); } catch (e) {}
+          try { await db.execute(sql`ALTER TABLE orders ADD COLUMN paymentDate timestamp`); } catch (e) {}
+          
+          await db.insert(orders).values({
+            customerName: input.customerName,
+            customerEmail: input.customerEmail,
+            totalAmount: input.totalAmount,
+            shippingCost: input.shippingCost,
+            itemsSummary: input.itemsSummary,
+            customFields: input.customFields,
+            paymentReceipt: input.paymentReceipt,
+            paymentDate: input.paymentReceipt ? new Date() : null,
+            status: input.paymentReceipt ? "paid" : "pending"
+          });
+        } else {
+          throw err;
+        }
+      }
 
       return { success: true };
     })

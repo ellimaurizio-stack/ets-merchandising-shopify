@@ -1266,7 +1266,9 @@ function ReceiptSettingsSection() {
     qrCodeText: "Scopri di più sui nostri progetti inquadrando il QR Code!",
     contactsText: "Email: info@a-tono.com | Tel: +39 012 3456789",
     footerText: "A-Tono ETS - Tutti i diritti riservati",
-    legalNotes: "Associazione ETS iscritta al RUNTS - C.F. 12345678901"
+    legalBlocks: [
+      { title: "Termini e Condizioni", text: "I resi sono accettati entro 14 giorni. La spedizione..." }
+    ]
   });
   
   const utils = trpc.useUtils();
@@ -1444,13 +1446,54 @@ function ReceiptSettingsSection() {
       </div>
 
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">Note Legali (Termini, Condizioni...)</label>
-        <Textarea 
-          value={config.legalNotes} 
-          onChange={(e) => handleChange("legalNotes", e.target.value)} 
-          placeholder="Es: I resi sono accettati entro 14 giorni. La spedizione..." 
-          rows={3}
-        />
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">Blocchi Note Legali (Titolo in grassetto + Testo)</label>
+        {config.legalBlocks?.map((block, index) => (
+          <div key={index} className="flex flex-col gap-2 p-3 border rounded-md mb-3 bg-slate-50">
+            <Input 
+              value={block.title} 
+              onChange={(e) => {
+                const newBlocks = [...(config.legalBlocks || [])];
+                newBlocks[index].title = e.target.value;
+                handleChange("legalBlocks", newBlocks);
+              }} 
+              placeholder="Titolo (es: Termini e Condizioni)" 
+            />
+            <Textarea 
+              value={block.text} 
+              onChange={(e) => {
+                const newBlocks = [...(config.legalBlocks || [])];
+                newBlocks[index].text = e.target.value;
+                handleChange("legalBlocks", newBlocks);
+              }} 
+              placeholder="Testo del paragrafo..." 
+              rows={3}
+            />
+            <Button 
+              type="button" 
+              variant="ghost" 
+              size="sm" 
+              className="text-red-500 self-end h-8"
+              onClick={() => {
+                const newBlocks = [...(config.legalBlocks || [])];
+                newBlocks.splice(index, 1);
+                handleChange("legalBlocks", newBlocks);
+              }}
+            >
+              Rimuovi Blocco
+            </Button>
+          </div>
+        ))}
+        <Button 
+          type="button" 
+          variant="outline" 
+          size="sm"
+          onClick={() => {
+            const newBlocks = [...(config.legalBlocks || []), { title: "", text: "" }];
+            handleChange("legalBlocks", newBlocks);
+          }}
+        >
+          + Aggiungi Blocco Note Legali
+        </Button>
       </div>
 
       <div className="flex justify-start gap-4 mt-4">

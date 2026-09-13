@@ -284,11 +284,59 @@ export default function Checkout() {
         }
       }
 
-      if (receiptConfig.legalNotes) {
+      let currentLegalY = finalY + 70;
+
+      // Handle legacy legalNotes if present
+      if (receiptConfig.legalNotes && !receiptConfig.legalBlocks) {
         doc.setFontSize(9);
-        const splitLegalNotes = doc.splitTextToSize(receiptConfig.legalNotes, 160);
-        doc.text(splitLegalNotes, 196, finalY + 70, { align: "right" });
+        const splitLegalNotes = doc.splitTextToSize(receiptConfig.legalNotes, 180);
+        splitLegalNotes.forEach((line: string) => {
+          if (currentLegalY > 270) {
+            doc.addPage();
+            currentLegalY = 20;
+          }
+          doc.text(line, 14, currentLegalY);
+          currentLegalY += 4;
+        });
+        currentLegalY += 6;
       }
+
+      // Handle dynamic legalBlocks
+      if (receiptConfig.legalBlocks && Array.isArray(receiptConfig.legalBlocks)) {
+        receiptConfig.legalBlocks.forEach((block: any) => {
+          if (block.title) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(10);
+            const splitTitle = doc.splitTextToSize(block.title, 180);
+            splitTitle.forEach((line: string) => {
+              if (currentLegalY > 270) { doc.addPage(); currentLegalY = 20; }
+              doc.text(line, 14, currentLegalY);
+              currentLegalY += 5;
+            });
+            currentLegalY += 1;
+          }
+          
+          if (block.text) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            // Splitting by \n first to preserve explicit newlines made by user,
+            // then by width to wrap long lines
+            const lines = block.text.split('\n');
+            lines.forEach((paragraph: string) => {
+              const splitText = doc.splitTextToSize(paragraph, 180);
+              splitText.forEach((line: string) => {
+                if (currentLegalY > 270) { doc.addPage(); currentLegalY = 20; }
+                doc.text(line, 14, currentLegalY);
+                currentLegalY += 4;
+              });
+              currentLegalY += 2; // Extra space between explicit paragraphs
+            });
+            currentLegalY += 4; // Space between blocks
+          }
+        });
+      }
+      
+      doc.setFont("helvetica", "normal"); // reset for footer
 
       // Footer - Fixed at the bottom of the last page
       const pageHeight = doc.internal.pageSize.getHeight();

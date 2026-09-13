@@ -102,6 +102,7 @@ export const storeSettings = mysqlTable("store_settings", {
   stripeSecretKey: varchar("stripeSecretKey", { length: 255 }),
   paypalClientId: varchar("paypalClientId", { length: 255 }),
   bankIban: varchar("bankIban", { length: 128 }),
+  bankEmail: varchar("bankEmail", { length: 255 }),
   checkoutFields: longtext("checkoutFields"), // JSON string of custom field definitions
   shippingConfig: longtext("shippingConfig"), // JSON string of shipping tiers
   shopTitle: text("shopTitle"),

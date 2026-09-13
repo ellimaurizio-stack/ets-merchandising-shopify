@@ -935,7 +935,7 @@ function PaymentSettingsSection() {
 
   useEffect(() => {
     if (settings) {
-      setProvider(settings.paymentProvider);
+      setProvider(settings.paymentProvider || "nessuno");
       setStripePublic(settings.stripePublicKey || "");
       setStripeSecret(settings.stripeSecretKey || "");
       setPaypalClient(settings.paypalClientId || "");
@@ -964,39 +964,39 @@ function PaymentSettingsSection() {
           className="w-full rounded-md border border-slate-300 px-3 py-2"
         >
           <option value="nessuno">Nessuno (Checkout disabilitato)</option>
-          <option value="stripe">Stripe (Carte di credito)</option>
-          <option value="paypal">PayPal</option>
           <option value="bonifico">Bonifico Bancario</option>
+          <option value="stripe">Stripe (Carta di Credito)</option>
+          <option value="paypal">PayPal</option>
         </select>
       </div>
 
       {provider === "stripe" && (
-        <div className="space-y-4 p-4 border rounded bg-white">
-          <h4 className="font-semibold text-sm">Configurazione Stripe</h4>
+        <div className="flex flex-col gap-4 rounded-lg border bg-slate-50 p-4">
+          <h3 className="font-semibold text-sm">Credenziali Stripe</h3>
           <div>
-            <label className="mb-1 block text-xs text-gray-600">Chiave Pubblica (Publishable key)</label>
+            <label className="mb-1 block text-xs text-gray-600">Chiave Pubblica (Publishable Key)</label>
             <Input value={stripePublic} onChange={e => setStripePublic(e.target.value)} placeholder="pk_test_..." />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-gray-600">Chiave Segreta (Secret key)</label>
+            <label className="mb-1 block text-xs text-gray-600">Chiave Segreta (Secret Key)</label>
             <Input type="password" value={stripeSecret} onChange={e => setStripeSecret(e.target.value)} placeholder="sk_test_..." />
           </div>
         </div>
       )}
 
       {provider === "paypal" && (
-        <div className="space-y-4 p-4 border rounded bg-white">
-          <h4 className="font-semibold text-sm">Configurazione PayPal</h4>
+        <div className="flex flex-col gap-4 rounded-lg border bg-slate-50 p-4">
+          <h3 className="font-semibold text-sm">Credenziali PayPal</h3>
           <div>
             <label className="mb-1 block text-xs text-gray-600">Client ID</label>
-            <Input value={paypalClient} onChange={e => setPaypalClient(e.target.value)} placeholder="Inserisci il Client ID di PayPal" />
+            <Input value={paypalClient} onChange={e => setPaypalClient(e.target.value)} placeholder="AYa..." />
           </div>
         </div>
       )}
 
       {provider === "bonifico" && (
-        <div className="space-y-4 p-4 border rounded bg-white">
-          <h4 className="font-semibold text-sm">Coordinate Bancarie</h4>
+        <div className="flex flex-col gap-4 rounded-lg border bg-slate-50 p-4">
+          <h3 className="font-semibold text-sm">Coordinate Bancarie</h3>
           <div>
             <label className="mb-1 block text-xs text-gray-600">IBAN dell'Associazione</label>
             <Input value={iban} onChange={e => setIban(e.target.value)} placeholder="IT00A0000000000000000000000" />
@@ -1005,7 +1005,7 @@ function PaymentSettingsSection() {
       )}
 
       <Button type="submit" disabled={updateSettings.isPending} className="mt-2 w-full sm:w-auto self-start">
-        {updateSettings.isPending ? "Salvataggio..." : "Salva Impostazioni"}
+        {updateSettings.isPending ? "Salvataggio..." : "Salva Impostazioni Pagamento"}
       </Button>
     </form>
   );
@@ -1018,10 +1018,11 @@ function CheckoutFieldsSection() {
   const [fields, setFields] = useState<Array<{ id: string, label: string, required: boolean, validationType?: string, width?: "full" | "half" }>>([]);
   const [newLabel, setNewLabel] = useState("");
   const [newRequired, setNewRequired] = useState(false);
+  const [bankEmail, setBankEmail] = useState("");
 
   const updateSettings = trpc.admin.updateSettings.useMutation({
     onSuccess: () => {
-      toast.success("Campi checkout aggiornati!");
+      toast.success("Impostazioni checkout aggiornate!");
       utils.admin.getSettings.invalidate();
       utils.commerce.settings.invalidate();
     },
@@ -1029,14 +1030,17 @@ function CheckoutFieldsSection() {
   });
 
   useEffect(() => {
-    if (settings?.checkoutFields) {
-      try {
-        setFields(JSON.parse(settings.checkoutFields));
-      } catch (e) {
+    if (settings) {
+      setBankEmail(settings.bankEmail || "");
+      if (settings.checkoutFields) {
+        try {
+          setFields(JSON.parse(settings.checkoutFields));
+        } catch (e) {
+          setFields([]);
+        }
+      } else {
         setFields([]);
       }
-    } else {
-      setFields([]);
     }
   }, [settings]);
 
@@ -1047,6 +1051,13 @@ function CheckoutFieldsSection() {
     updateSettings.mutate({
       paymentProvider: settings?.paymentProvider || "nessuno",
       checkoutFields: JSON.stringify(newFields)
+    });
+  };
+
+  const saveEmail = () => {
+    updateSettings.mutate({
+      paymentProvider: settings?.paymentProvider || "nessuno",
+      bankEmail: bankEmail
     });
   };
 
@@ -1071,7 +1082,22 @@ function CheckoutFieldsSection() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
+      
+      {/* Impostazioni Testi Fissi Checkout */}
+      <div className="flex flex-col gap-4 border-b pb-8">
+        <h3 className="text-lg font-semibold">Testi Fissi e Istruzioni</h3>
+        <div className="flex flex-col sm:flex-row items-end gap-4 bg-white p-4 rounded border">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-xs font-medium mb-1 block">Email ricezione Distinta Bonifico (Istruzioni di pagamento)</label>
+            <Input type="email" value={bankEmail} onChange={e => setBankEmail(e.target.value)} placeholder="info@ets.a-tono.com" />
+          </div>
+          <Button onClick={saveEmail} type="button" disabled={updateSettings.isPending}>
+            {updateSettings.isPending ? "Salvataggio..." : "Salva Email"}
+          </Button>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-4">
         <h3 className="text-lg font-semibold">Aggiungi nuovo campo al Checkout</h3>
         <p className="text-sm text-gray-600">Attenzione: Assicurati di avere almeno un campo con regola 'Email' e campi per 'Nome' e 'Cognome' per permettere il salvataggio corretto degli ordini.</p>

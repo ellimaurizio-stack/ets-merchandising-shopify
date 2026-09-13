@@ -130,6 +130,7 @@ export const commerceRouter = router({
       stripePublicKey: storeSettings.stripePublicKey,
       paypalClientId: storeSettings.paypalClientId,
       bankIban: storeSettings.bankIban,
+      bankEmail: storeSettings.bankEmail,
       checkoutFields: storeSettings.checkoutFields,
       shippingConfig: storeSettings.shippingConfig,
       shopTitle: storeSettings.shopTitle,

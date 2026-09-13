@@ -472,7 +472,7 @@ export default function Checkout() {
                 <p>2. Clicca su Conferma: <strong>scaricherai automaticamente il riepilogo in PDF</strong> con i dati per il pagamento.</p>
                 <p className="mt-2"><strong>IBAN:</strong> {settings?.bankIban || "Non configurato"}</p>
                 <p className="mt-2">3. Il tuo ordine verrà elaborato alla ricezione del bonifico, e della relativa distinta.</p>
-                <p className="mt-2">4. Puoi inviare la distinta a <strong>info@ets.a-tono.com</strong> o caricarla direttamente in questa pagina cliccando qui sotto:</p>
+                <p className="mt-2">4. Puoi inviare la distinta a <strong>{settings?.bankEmail || "info@ets.a-tono.com"}</strong> o caricarla direttamente in questa pagina cliccando qui sotto:</p>
                 <div className="mt-4 bg-white p-4 border rounded-xl border-dashed text-center flex flex-col items-center justify-center">
                   <p className="font-medium mb-3 text-xs text-gray-600">Carica Distinta Bonifico (opzionale, formato PDF max 1MB)</p>
                   <label htmlFor="receipt-upload" className="cursor-pointer inline-flex items-center justify-center rounded-md bg-white border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 w-full sm:w-auto">

@@ -176,6 +176,7 @@ export const adminRouter = router({
         try {
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN cartConfig longtext`);
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN bankEmail varchar(255)`);
           const result = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
           if (result.length > 0) return result[0];
         } catch (e) {
@@ -193,6 +194,7 @@ export const adminRouter = router({
       stripeSecretKey: z.string().optional(),
       paypalClientId: z.string().optional(),
       bankIban: z.string().optional(),
+      bankEmail: z.string().optional(),
       checkoutFields: z.string().optional(),
       shippingConfig: z.string().optional(),
       shopTitle: z.string().optional(),
@@ -216,6 +218,7 @@ export const adminRouter = router({
         try {
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN receiptConfig longtext`);
           await db.execute(sql`ALTER TABLE store_settings ADD COLUMN cartConfig longtext`);
+          await db.execute(sql`ALTER TABLE store_settings ADD COLUMN bankEmail varchar(255)`);
           const existing = await db.select().from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
           if (existing.length > 0) {
             await db.update(storeSettings).set(input).where(eq(storeSettings.id, "default"));

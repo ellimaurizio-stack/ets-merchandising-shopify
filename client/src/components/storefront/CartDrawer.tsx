@@ -40,12 +40,12 @@ export function CartDrawer() {
   return (
     <Sheet open={isOpen} onOpenChange={open => (open ? openCart() : closeCart())}>
       <SheetContent side="right" className="flex w-full max-w-[430px] flex-col gap-0 border-0 bg-[#f7f9fa] p-0 text-[#334155] sm:max-w-[430px]">
-        <SheetHeader className="border-b border-[#d9e1e7] px-6 pb-5 pt-7 text-left">
+        <SheetHeader className="border-b border-[#d9e1e7] px-6 pb-5 pt-12 md:pt-10 text-left">
           <div className="mb-2 flex items-center gap-2 text-[#7a9cbf]">
             <ShoppingBag size={18} aria-hidden="true" />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Merchandising solidale</span>
           </div>
-          <SheetTitle className="font-display text-3xl font-light text-[#2b3e52]">Il tuo carrello</SheetTitle>
+          <SheetTitle className="font-display text-3xl font-light text-[#2b3e52] pr-6">Il tuo carrello</SheetTitle>
           <SheetDescription className="mt-1 text-sm leading-6 text-[#607287]">
             {itemCount === 0 ? "Aggiungi un oggetto per sostenere i progetti dell’ETS." : `${itemCount} ${itemCount === 1 ? "prodotto" : "prodotti"} selezionati.`}
           </SheetDescription>

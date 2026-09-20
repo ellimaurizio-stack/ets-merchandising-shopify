@@ -5,7 +5,7 @@ import { RichTextEditor } from "../components/ui/RichTextEditor";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List, FileText } from "lucide-react";
+import { ArrowUp, ArrowDown, Package, Users, CreditCard, LayoutTemplate, ShieldCheck, ShoppingBag, LogOut, Truck, List, FileText, FolderTree } from "lucide-react";
 
 type Tab = "general" | "products" | "categories" | "catalog" | "orders" | "shipping" | "payment" | "checkout" | "cart" | "receipt" | "privacy" | "admins";
 

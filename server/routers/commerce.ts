@@ -33,6 +33,30 @@ const cartLineUpdateSchema = z.object({
 });
 
 export const commerceRouter = router({
+
+  listCategories: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return [];
+    try {
+      return await db.select().from(categories).orderBy(asc(categories.sortOrder));
+    } catch(e) { return []; }
+  }),
+  
+  getAllProductCategories: publicProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) return [];
+      try { return await db.select().from(productCategories); } catch(e) { return []; }
+    }),
+    getProductCategories: publicProcedure
+    .input(z.object({ productId: z.string() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      try {
+        return await db.select().from(productCategories).where(eq(productCategories.productId, input.productId));
+      } catch(e) { return []; }
+    }),
+
   products: router({
     list: publicProcedure
       .input(
@@ -137,9 +161,10 @@ export const commerceRouter = router({
       shopDescription: storeSettings.shopDescription,
       receiptConfig: storeSettings.receiptConfig,
       cartConfig: storeSettings.cartConfig,
+      shopNotice: storeSettings.shopNotice,
     }).from(storeSettings).where(eq(storeSettings.id, "default")).limit(1);
     if (result.length > 0) return result[0];
-    return { paymentProvider: "nessuno" };
+    return { paymentProvider: "nessuno", shopNotice: "" };
   }),
   listPrivacyDisclaimers: publicProcedure.query(async () => {
     const { getDb } = await import("../db");

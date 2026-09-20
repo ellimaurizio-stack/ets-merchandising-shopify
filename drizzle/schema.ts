@@ -109,4 +109,20 @@ export const storeSettings = mysqlTable("store_settings", {
   shopDescription: text("shopDescription"),
   receiptConfig: longtext("receiptConfig"), // JSON string of PDF receipt settings
   cartConfig: longtext("cartConfig"), // JSON string of cart UI settings
+  shopNotice: longtext("shopNotice"), // JSON string { enabled: boolean, content: string }
+});
+
+export const categories = mysqlTable("categories", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  isDefault: int("isDefault").default(0).notNull(), // 1 true, 0 false
+  sortOrder: int("sortOrder").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const productCategories = mysqlTable("product_categories", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: varchar("productId", { length: 64 }).notNull(),
+  categoryId: varchar("categoryId", { length: 64 }).notNull(),
 });

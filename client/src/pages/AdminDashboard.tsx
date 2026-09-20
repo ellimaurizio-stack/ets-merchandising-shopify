@@ -316,9 +316,19 @@ export default function AdminDashboard() {
     });
     
     if (editId) {
-      updateProduct.mutate({ id: editId, title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig });
+      updateProduct.mutate({  id: editId, title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig  }, {
+        onSuccess: () => {
+          setProductCategories.mutate({ productId: editId, categoryIds: selectedCategories });
+        }
+      });
     } else {
-      createProduct.mutate({ title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig });
+      createProduct.mutate({  title, priceAmount, imageUrl, description, descriptionHtml, weightGrams, lengthCm, widthCm, heightCm, impactConfig  }, {
+        onSuccess: (res) => {
+          if (res && res.id) {
+            setProductCategories.mutate({ productId: res.id, categoryIds: selectedCategories });
+          }
+        }
+      });
     }
   };
 

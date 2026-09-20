@@ -160,6 +160,15 @@ export default function AdminDashboard() {
   const utils = trpc.useUtils();
   
   const { data: products, isLoading: isLoadingProducts, error: productsError } = trpc.admin.listProducts.useQuery(undefined, { enabled: isAdmin });
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [bulkCategoryId, setBulkCategoryId] = useState<string>("");
+  const assignCategories = trpc.admin.assignCategoriesToProducts.useMutation({
+    onSuccess: () => {
+      alert("Categorie assegnate con successo!");
+      setSelectedProductIds([]);
+      setBulkCategoryId("");
+    }
+  });
   const { data: admins, isLoading: isLoadingAdmins } = trpc.admin.listAdmins.useQuery(undefined, { enabled: isAdmin });
   
   const login = trpc.admin.login.useMutation({
@@ -575,6 +584,12 @@ export default function AdminDashboard() {
                   </Button>
                 </form>
               </div>
+            </div>
+          )}
+          {activeTab === "categories" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h2 className="mb-6 text-3xl font-bold tracking-tight">Categorie</h2>
+              <CategoriesSection />
             </div>
           )}
 

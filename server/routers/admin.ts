@@ -134,7 +134,7 @@ export const adminRouter = router({
         // Check if already assigned
         const existing = await db.select().from(productCategories)
           .where(
-            sql`productId = '${productId}' AND categoryId = '${input.categoryId}'`
+            and(eq(productCategories.productId, productId), eq(productCategories.categoryId, input.categoryId))
           );
         
         if (existing.length === 0) {

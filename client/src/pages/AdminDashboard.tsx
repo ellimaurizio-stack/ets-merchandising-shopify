@@ -162,8 +162,10 @@ export default function AdminDashboard() {
   const { data: products, isLoading: isLoadingProducts, error: productsError } = trpc.admin.listProducts.useQuery(undefined, { enabled: isAdmin });
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [bulkCategoryId, setBulkCategoryId] = useState<string>("");
+  const { data: allProductCategories } = trpc.commerce.getAllProductCategories.useQuery();
   const assignCategories = trpc.admin.assignCategoriesToProducts.useMutation({
     onSuccess: () => {
+      utils.commerce.getAllProductCategories.invalidate();
       alert("Categorie assegnate con successo!");
       setSelectedProductIds([]);
       setBulkCategoryId("");
@@ -203,7 +205,11 @@ export default function AdminDashboard() {
 
   const { data: categories } = trpc.admin.listCategories.useQuery();
   const getProductCategories = trpc.admin.getProductCategories.useQuery({ productId: editId || "" }, { enabled: !!editId });
-  const setProductCategories = trpc.admin.setProductCategories.useMutation();
+  const setProductCategories = trpc.admin.setProductCategories.useMutation({
+    onSuccess: () => {
+      utils.commerce.getAllProductCategories.invalidate();
+    }
+  });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   // sync selected categories when editId changes
@@ -669,6 +675,12 @@ export default function AdminDashboard() {
                           <div>
                             <div className="font-semibold text-slate-900">{p.title}</div>
                             <div className="text-sm font-medium text-slate-500">€{p.priceAmount}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {allProductCategories?.filter((pc: any) => pc.productId === p.id).map((pc: any) => {
+                                const cat = categories?.find(c => c.id === pc.categoryId);
+                                return cat ? <span key={pc.categoryId} className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{cat.name}</span> : null;
+                              })}
+                            </div>
                           </div>
                         </div>
                         <div className="flex gap-2">

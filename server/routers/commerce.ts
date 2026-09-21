@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { asc, eq } from "drizzle-orm";
+import { categories, productCategories } from "../../drizzle/schema";
 import {
   addCartLines,
   createCart,
@@ -21,6 +22,7 @@ import {
   updateCartLines,
 } from "../_core/shopify";
 import { publicProcedure, router } from "../_core/trpc";
+import { getDb } from "../db";
 
 const cartLineInputSchema = z.object({
   variantId: z.string().min(1),

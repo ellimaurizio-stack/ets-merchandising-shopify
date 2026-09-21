@@ -1649,7 +1649,7 @@ function ShopSettingsSection() {
           <RichTextEditor value={shopNotice} onChange={setShopNotice} />
         </div>
       </div>
-      <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description})} disabled={updateSettings.isPending} className="mt-4">
+      <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description, shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice }) })} disabled={updateSettings.isPending} className="mt-4">
         {updateSettings.isPending ? "Salvataggio..." : "Salva Testi e Avviso"}
       </Button>
     </div>

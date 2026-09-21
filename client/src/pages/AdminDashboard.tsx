@@ -1186,7 +1186,7 @@ function PaymentSettingsSection() {
         stripeSecretKey: stripeSecret,
         paypalClientId: paypalClient,
         bankIban: iban
-      , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+      });
     }} className="flex flex-col gap-4">
       <div>
         <label className="mb-1 block text-sm font-medium">Provider di Pagamento Attivo</label>
@@ -1283,14 +1283,14 @@ function CheckoutFieldsSection() {
     updateSettings.mutate({
       paymentProvider: settings?.paymentProvider || "nessuno",
       checkoutFields: JSON.stringify(newFields)
-    , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+    });
   };
 
   const saveEmail = () => {
     updateSettings.mutate({
       paymentProvider: settings?.paymentProvider || "nessuno",
       bankEmail: bankEmail
-    , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+    });
   };
 
   const addField = () => {
@@ -1324,19 +1324,7 @@ function CheckoutFieldsSection() {
             <label className="text-xs font-medium mb-1 block">Email ricezione Distinta Bonifico (Istruzioni di pagamento)</label>
             <Input type="email" value={bankEmail} onChange={e => setBankEmail(e.target.value)} placeholder="info@ets.a-tono.com" />
           </div>
-      <div className="mt-6 pt-6 border-t border-slate-200">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-lg">Avviso Negozio (Sopra ai prodotti)</h3>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={noticeEnabled} onChange={e => setNoticeEnabled(e.target.checked)} className="rounded" />
-            Mostra avviso
-          </label>
-        </div>
-        <p className="text-sm text-slate-500 mb-4">Usa questo editor per formattare messaggi importanti (es. tempistiche, resi). Il testo apparirà sopra la lista dei prodotti.</p>
-        <div className={!noticeEnabled ? "opacity-50 pointer-events-none" : ""}>
-          <RichTextEditor value={shopNotice} onChange={setShopNotice} />
-        </div>
-      </div>
+      
       <Button onClick={saveEmail} type="button" disabled={updateSettings.isPending}>
             {updateSettings.isPending ? "Salvataggio..." : "Salva Email"}
           </Button>
@@ -1522,7 +1510,7 @@ function ShippingSettingsSection() {
     updateSettings.mutate({
       paymentProvider: settings?.paymentProvider || "nessuno",
       shippingConfig: JSON.stringify(newTiers)
-    , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+    });
   };
 
   const addTier = () => {
@@ -1647,7 +1635,21 @@ function ShopSettingsSection() {
         />
       </div>
 
-      <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description, shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice }) })} disabled={updateSettings.isPending} className="mt-4">
+
+      <div className="mt-6 pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-bold text-lg">Avviso Negozio (Sopra ai prodotti)</h3>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={noticeEnabled} onChange={e => setNoticeEnabled(e.target.checked)} className="rounded" />
+            Mostra avviso
+          </label>
+        </div>
+        <p className="text-sm text-slate-500 mb-4">Usa questo editor per formattare messaggi importanti (es. tempistiche, resi). Il testo apparirà in Vetrina sopra la lista dei prodotti.</p>
+        <div className={!noticeEnabled ? "opacity-50 pointer-events-none" : ""}>
+          <RichTextEditor value={shopNotice} onChange={setShopNotice} />
+        </div>
+      </div>
+      <Button onClick={() => updateSettings.mutate({ shopTitle: title, shopDescription: description})} disabled={updateSettings.isPending} className="mt-4">
         {updateSettings.isPending ? "Salvataggio..." : "Salva Testi e Avviso"}
       </Button>
     </div>
@@ -1682,7 +1684,7 @@ function CartSettingsSection() {
   const saveConfig = () => {
     updateSettings.mutate({
       cartConfig: JSON.stringify(config)
-    , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+    });
   };
 
   return (
@@ -1749,7 +1751,7 @@ function ReceiptSettingsSection() {
   });
 
   const handleSave = () => {
-    updateSettings.mutate({ receiptConfig: JSON.stringify(config) , shopNotice: JSON.stringify({ enabled: noticeEnabled, content: shopNotice })});
+    updateSettings.mutate({ receiptConfig: JSON.stringify(config) });
   };
 
   const handleChange = (field: string, value: string) => {

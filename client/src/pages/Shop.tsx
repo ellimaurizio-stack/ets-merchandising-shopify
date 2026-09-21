@@ -11,15 +11,19 @@ export default function Shop() {
   const { data: productCategories = [] } = trpc.commerce.getAllProductCategories.useQuery();
   
   const [activeCategoryId, setActiveCategoryId] = useState<string>("all");
+  const [hasSetDefault, setHasSetDefault] = useState(false);
   
   // Set default category on load
   const { data: settings } = trpc.commerce.settings.useQuery();
   useEffect(() => {
-    if (categories.length > 0 && activeCategoryId === "all") {
+    if (categories.length > 0 && !hasSetDefault) {
       const defaultCat = categories.find(c => c.isDefault === 1);
-      if (defaultCat) setActiveCategoryId(defaultCat.id);
+      if (defaultCat) {
+        setActiveCategoryId(defaultCat.id);
+      }
+      setHasSetDefault(true);
     }
-  }, [categories, activeCategoryId]);
+  }, [categories, hasSetDefault]);
 
   const filteredProducts = useMemo(() => {
     if (activeCategoryId === "all") return products;

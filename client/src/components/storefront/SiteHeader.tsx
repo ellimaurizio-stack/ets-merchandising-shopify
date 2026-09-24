@@ -4,11 +4,11 @@ import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
-  { label: "Home", href: "https://etssito-production.up.railway.app/index.html" },
-  { label: "Chi Siamo", href: "https://etssito-production.up.railway.app/chi-siamo.html" },
-  { label: "Progetti", href: "https://etssito-production.up.railway.app/progetti.html" },
-  { label: "Sostienici", href: "https://etssito-production.up.railway.app/sostienici.html" },
-  { label: "Contatti", href: "https://etssito-production.up.railway.app/contatti.html" },
+  { label: "Home", href: "https://www.ets-atono.com/index.html" },
+  { label: "Chi Siamo", href: "https://www.ets-atono.com/chi-siamo.html" },
+  { label: "Progetti", href: "https://www.ets-atono.com/progetti.html" },
+  { label: "Sostienici", href: "https://www.ets-atono.com/sostienici.html" },
+  { label: "Contatti", href: "https://www.ets-atono.com/contatti.html" },
   { label: "Shop", href: "/shop" },
 ];
 
@@ -22,7 +22,7 @@ export function SiteHeader() {
       <div className="flex items-center justify-between px-[5%] py-[1.5rem] w-full">
         <Link href="/" className="flex shrink-0 items-center gap-[10px] font-semibold text-[1.8rem] text-white no-underline" style={{ fontFamily: "Roboto, sans-serif" }} aria-label="A-Tono ETS">
           <img
-            src="https://etssito-production.up.railway.app/img/ets-logo-navbar.png"
+            src="https://www.ets-atono.com/img/ets-logo-navbar.png"
             alt="A-Tono ETS"
             style={{ maxHeight: "40px", width: "auto" }}
           />

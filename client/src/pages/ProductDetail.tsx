@@ -63,6 +63,30 @@ export default function ProductDetail() {
     }
   }, [product]);
 
+  
+  const jsonLd = useMemo(() => {
+    if (!product || !selectedVariant) return null;
+    return {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": product.title,
+      "image": product.images[0] || "",
+      "description": product.description,
+      "sku": selectedVariant.id,
+      "offers": {
+        "@type": "Offer",
+        "url": `https://shop.ets-atono.com/prodotto/${product.handle}`,
+        "priceCurrency": "EUR",
+        "price": selectedVariant.price.amount,
+        "availability": product.availableForSale ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "A-Tono ETS"
+        }
+      }
+    };
+  }, [product, selectedVariant]);
+
   const addToCart = async () => {
     if (!selectedVariant?.availableForSale) return;
     try {
